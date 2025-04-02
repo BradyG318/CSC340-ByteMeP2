@@ -9,5 +9,7 @@ package Gamelogic;
  *  and the steadily reducing point total for how long it takes players to answer)
  */
 public class GameManager {
-    
+    public static void startRound() {
+        
+    }
 }

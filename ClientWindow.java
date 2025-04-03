@@ -17,6 +17,7 @@ public class ClientWindow implements ActionListener
 	private JLabel timer;
 	private JLabel score;
 	private TimerTask clock;
+	private int scoreNum;
 	
 	private JFrame window;
 	
@@ -26,15 +27,20 @@ public class ClientWindow implements ActionListener
 	
 	public ClientWindow()
 	{
-		JOptionPane.showMessageDialog(window, "This is a trivia game");
+		JOptionPane.showMessageDialog(window, "Video Game Trivia");
 		
-		window = new JFrame("Trivia");
+		window = new JFrame("Video game Trivia");
+
+		//read question from protocol tcp
 		question = new JLabel("Q1. This is a sample question"); // represents the question
 		window.add(question);
 		question.setBounds(10, 5, 350, 100);;
 		
 		options = new JRadioButton[4];
 		optionGroup = new ButtonGroup();
+
+		//for each index, read option from protocol tcp
+		//parse with '.'
 		for(int index=0; index<options.length; index++)
 		{
 			options[index] = new JRadioButton("Option " + (index+1));  // represents an option
@@ -52,8 +58,8 @@ public class ClientWindow implements ActionListener
 		t.schedule(clock, 0, 1000); // clock is called every second
 		window.add(timer);
 		
-		
-		score = new JLabel("SCORE"); // represents the score
+		scoreNum = 0;
+		score = new JLabel("SCORE: " + scoreNum); // represents the score
 		score.setBounds(50, 250, 100, 20);
 		window.add(score);
 
@@ -87,17 +93,17 @@ public class ClientWindow implements ActionListener
 		String input = e.getActionCommand();  
 		switch(input)
 		{
-			case "Option 1":	// Your code here
+			case "Option 1":	// Your code here   store/change answer in udp packet
 								break;
-			case "Option 2":	// Your code here
+			case "Option 2":	// Your code here	
 								break;
 			case "Option 3":	// Your code here
 								break;
 			case "Option 4":	// Your code here
 								break;
-			case "Poll":		// Your code here
+			case "Poll":		// Your code here send   udp to server, freeze all options
 								break;
-			case "Submit":		// Your code here
+			case "Submit":		// Your code here	if poll = 1 able to submit (at end of timer?)
 								break;
 			default:
 								System.out.println("Incorrect Option");

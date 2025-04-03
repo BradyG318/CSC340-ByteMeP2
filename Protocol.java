@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
- * @authors Morgan, Fahim, Zakaria
- * 
- * Creates a serlializable collection of data that 
+ * UDP Protocol
  */
 public class Protocol implements Serializable {
     private String protocolType;
@@ -23,12 +21,7 @@ public class Protocol implements Serializable {
     private Integer senderPort;
 
     private Integer packetNumber;
-    private Double version;
-
-    private boolean isQuestion;
-    private String question;
-    private String[] options;
-     
+    private Double version;     
 
     private String[] files;
     private String data;
@@ -48,7 +41,7 @@ public class Protocol implements Serializable {
      */
     public Protocol(InetAddress destinationIP, InetAddress senderIP, Integer destinationPort, Integer senderPort,
             Integer packetNum, String[] files) {
-        this.protocolType = "En-cryptid's UDP";
+        this.protocolType = "Byte-Me";
         this.version = 1.1;
         this.destinationIP = destinationIP;
         this.senderIP = senderIP;
@@ -82,7 +75,7 @@ public class Protocol implements Serializable {
      */
     public Protocol(InetAddress destinationIP, InetAddress senderIP, Integer destinationPort, Integer senderPort,
             Integer packetNum, String data) {
-        this.protocolType = "En-cryptid's UDP";
+        this.protocolType = "Byte-Me";
         this.version = 1.1;
         this.destinationIP = destinationIP;
         this.senderIP = senderIP;
@@ -119,8 +112,8 @@ public class Protocol implements Serializable {
 
         System.out.println(dataParts[0] + " " + dataParts[1]);
 
-        if (dataParts[0].startsWith("En-cryptid's UDP") && dataParts[1].equals("1.1")) {
-            this.protocolType = "En-cryptid's UDP";
+        if (dataParts[0].startsWith("Byte-Me") && dataParts[1].equals("1.1")) {
+            this.protocolType = "Byte-Me";
 
 
             try {

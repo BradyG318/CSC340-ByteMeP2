@@ -1,7 +1,9 @@
-package Networking;
+//package Networking;
 
 import java.io.File;
 import java.io.Serializable;
+
+import org.w3c.dom.Node;
 /**
  * Packet protocol that stores all data
  * to be sent over the network

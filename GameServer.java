@@ -1,10 +1,20 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +32,9 @@ public class GameServer {
      * 3) client udp for poll push
      * 4) server (make queue of IPs)
      * 5) if ip first at timer end, allow submit (else, disable buttons)
-     * 6) 
+     * 6) server takes in answer 
+     * 
+     * 1 udp listen thread -- datagram socket
      * 
      */
 
@@ -32,109 +44,108 @@ public class GameServer {
      */
 
      // Datagram socket for communication
-    DatagramSocket socket = null;
+    private ServerSocket serverSocket = null;
+    private DatagramSocket pollSocket = null;
+    private Socket socket = null;
+    private InputStream inStream = null;
+    private OutputStream outStream = null;
 
-    // Maps to keep track of client statuses
-    HashMap<InetAddress, Integer> map = new HashMap<>();
-    HashMap<InetAddress, String> mapAvailable = new HashMap<>();
-    HashMap<InetAddress, String> fileMap = new HashMap<>();
+    //game stuff
+    Queue<InetAddress> answerOrder = new LinkedList<>(); //using player number 
+    ArrayList players = new ArrayList<>(5);
 
-    // Scheduled executor service for periodic tasks
-    ScheduledExecutorService timer = Executors.newScheduledThreadPool(2);
-
-    /**
-     * Constructor for UDPServer class.
-     */
-    public GameServer() {
-        // Empty constructor
-    }
-
-    /**
-     * Starts the server timer to periodically check the heartbeat of clients.
-     */
-    public void serverTimer() {
-        // Schedule a task to check if clients are alive every 30 seconds
-        timer.scheduleAtFixedRate(() -> {
-            for (Map.Entry<InetAddress, Integer> entry : map.entrySet()) {
-                if (entry.getValue() >= 30) {
-                    mapAvailable.put(entry.getKey(), " - Dead");
-                }
-            }
-            System.out.println("Current connections: " + mapAvailable);
-        }, 0, 30, TimeUnit.SECONDS);
-
-        // Schedule a task to increment the heartbeat counter every second
-        timer.scheduleAtFixedRate(() -> {
-            for (Map.Entry<InetAddress, Integer> entry : map.entrySet()) {
-                map.put(entry.getKey(), entry.getValue() + 1);
-            }
-        }, 0, 1, TimeUnit.SECONDS);
-    }
-
-    /**
-     * Creates a socket and listens for incoming messages from clients.
-     */
-    public void createAndListenSocket() {
+    //constructor
+    public GameServer(){
         try {
-            // Create a datagram socket bound to port 9876
-            socket = new DatagramSocket(9876);
-            byte[] incomingData = new byte[1024];
-
-            while (true) {
-                // Receive incoming packet
-                DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-                socket.receive(incomingPacket);
-                String message = new String(incomingPacket.getData());
-                InetAddress IPAddress = incomingPacket.getAddress();
-                int port = incomingPacket.getPort();
-
-                // Print received message and client details
-                System.out.println("Received message from client: " + message);
-                System.out.println("Client IP: " + IPAddress.getHostAddress());
-                System.out.println("Client port: " + port);
-
-                // Update client status
-                map.put(IPAddress, 0);
-                mapAvailable.put(IPAddress, " - Alive");
-                
-
-                // Process the incoming packet using OurProtocol
-                Protocol deconstructPacket = new Protocol(incomingPacket);
-                deconstructPacket.protocolDetails();
-                fileMap.put(IPAddress, deconstructPacket.files().toString());
-
-                // Build a string with IP, active/deactive, and files
-                String nodeDetails = "";
-                for (InetAddress ip : map.keySet()) {
-                    String availability = mapAvailable.get(ip);
-                    String files = fileMap.get(ip);
-                    nodeDetails += "IP: " + ip.getHostAddress() + " " + availability
-                            + " - " + files + "$";
-                }
-
-
-                // Send reply to client
-                byte[] data = nodeDetails.getBytes();
-                Protocol replyPacket = new Protocol(IPAddress, InetAddress.getLocalHost(), port, 1010, 1, nodeDetails);
-                socket.send(replyPacket.getPacket());
-
-                // Sleep for 2 seconds before processing the next packet
-                Thread.sleep(2000);
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (IOException i) {
-            i.printStackTrace();
-        } catch (InterruptedException e) {
+            serverSocket = new ServerSocket(1987);
+            pollSocket = new DatagramSocket(1983);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+
+    public void createSocketThreads() {
+        try {
+            while (true) {
+                //udp (poll answer listener)
+                Thread pollHandlerThread = new Thread(() -> handleUDP());
+                pollHandlerThread.start();
+
+                //tcp (client handler)
+                while(true){
+                    Socket tcpSocket = serverSocket.accept();
+                    Thread clientThread = new Thread(() -> handleTcpClient(tcpSocket));
+                    clientThread.start();
+                }
     
+            }
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
+    }
+
+    
+
+    /**
+     * Handles poll data from UDP packets
+     */
+    private void handleUDP() {
+        try {
+            byte[] incomingData = new byte[1024];
+            while (true) {
+                DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+                pollSocket.receive(incomingPacket);
+
+                Protocol pollData = new Protocol(incomingPacket);
+                //store ip in queue
+                answerOrder.add(incomingPacket.getAddress());
+                
+                Thread.sleep(2000);
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleTcpClient(Socket tcpSocket){
+        try {
+            inStream = socket.getInputStream();
+            outStream = socket.getOutputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+            PrintWriter writer = new PrintWriter(tcpSocket.getOutputStream(), true);
+
+            while(true){ //game true
+
+                //confirm
+                writer.println("Handshake");
+
+                byte[] readBuffer = new byte[200];
+                //read the data from client
+                int num = inStream.read(readBuffer);
+                if (num > 0) {
+                    byte[] arrayBytes = new byte[num];
+                    System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
+                    String recvedMessage = new String(arrayBytes, "UTF-8");
+                    System.out.println("Received message :" + recvedMessage);
+                } 
+                else {
+                    notifyAll();
+                }
+    
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        
+    }
+
     public static void main(String[] args) {
         GameServer server = new GameServer();
-        server.serverTimer();
-        server.createAndListenSocket();
+        server.createSocketThreads();
     }
-    
+
 }

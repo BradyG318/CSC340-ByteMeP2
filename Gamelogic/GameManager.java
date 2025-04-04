@@ -2,6 +2,7 @@ package Gamelogic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**Class to handle the server-side game logic of the quiz. An instance of Game Manager is broadly a game instance, able to handle score, active player list, and which players are still connected to the game.*/
@@ -14,9 +15,9 @@ import java.util.concurrent.TimeUnit;
  *  and the steadily reducing point total for how long it takes players to answer)
  */
 public class GameManager {
-    ArrayList<Player> players; //A list of all players who have been added to the game at any point during runtime
+    HashMap<String, Player> players; //A list of all players who have been added to the game at any point during runtime
     ArrayList<Player> activePlayers; //A list of all players who have responded since last heartbeat check (May not be needed)
-    Player pointPlayer;
+    String pointPlayerID;
     int activeQuestion;
     int timerTotal, curTime;
     Boolean answeredCorrect;
@@ -25,7 +26,7 @@ public class GameManager {
      * @param players A list of objects (player1, player2, etc.) actively in the current managed game
      */
     public GameManager(Player... players) {
-        this.players = new ArrayList<Player>(Arrays.asList(players));
+        for(Player p : players) {this.players.put(p.getID(), p);}
         timerTotal = 15;
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
@@ -41,27 +42,27 @@ public class GameManager {
     }
 
     public void endRound() {
-        if(pointPlayer != null) { //Make sure someone buzzed to answer the question
+        if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
             if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
                 if(answeredCorrect) { //If they did, see if they got the answer correct
-                    pointPlayer.scoreInc(10);
-                } else {pointPlayer.scoreInc(-10);}
-            } else {pointPlayer.scoreInc(-20);}
+                    players.get(pointPlayerID).scoreInc(10);
+                } else {players.get(pointPlayerID).scoreInc(-10);}
+            } else {players.get(pointPlayerID).scoreInc(-20);}
         }
-        pointPlayer = null;
+        pointPlayerID = null;
         answeredCorrect = null; 
     }
 
-    public void addPlayer(Player... newPlayer) {players.addAll(new ArrayList<Player>(Arrays.asList(newPlayer)));}
+    public void addPlayer(Player... newPlayer) {for(Player p : newPlayer) {this.players.put(p.getID(), p);}}
 
     /**
      * @return List of all players who have connected to the game
      */
-    public ArrayList<Player> getPlayers() {return players;}
+    public ArrayList<Player> getPlayers() {return new ArrayList<Player>(players.values());}
     public int getTimer() {return curTime;}
 
 
-    public void buzzIn(Player buzzingPlayer) {pointPlayer = buzzingPlayer;} //Convert playerlist to hashmap that uess ID as key, this takes key in
+    public void buzzIn(String buzzingPlayerID) {pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 
     /**@return True if inputted answer num is correct */
     public boolean answer(int answerNum) {

@@ -1,6 +1,6 @@
-Format Example:
-(This is an example question)
+(This is an example question) 
  (This is example answer 1)
  (This is example answer 2)
  (This is example answer 3)
  (This is example answer 4)
+ (AnswerNum)

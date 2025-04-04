@@ -19,6 +19,7 @@ public class GameManager {
     Player pointPlayer;
     int activeQuestion;
     int timerTotal, curTime;
+    Boolean answeredCorrect;
     /**
      * Initiates an active game with a list of all connected players
      * @param players A list of objects (player1, player2, etc.) actively in the current managed game
@@ -38,24 +39,21 @@ public class GameManager {
     public void startRound() {
         
     }
+
     public void endRound() {
-        if(pointPlayer != null) {
-
+        if(pointPlayer != null) { //Make sure someone buzzed to answer the question
+            if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
+                if(answeredCorrect) { //If they did, see if they got the answer correct
+                    pointPlayer.scoreInc(10);
+                } else {pointPlayer.scoreInc(-10);}
+            } else {pointPlayer.scoreInc(-20);}
         }
+        pointPlayer = null;
+        answeredCorrect = null; 
     }
 
-    public void addPlayer(Player newPlayer) {players.add(newPlayer);}
+    public void addPlayer(Player... newPlayer) {players.addAll(new ArrayList<Player>(Arrays.asList(newPlayer)));}
 
-    private void startTimer() {
-        curTime = timerTotal;
-        double tempPrev =0, temp;
-        temp = System.currentTimeMillis()/1000;
-        while(curTime > 0) {
-            if(temp-tempPrev > 1) {curTime--; tempPrev = temp;}
-            temp = System.currentTimeMillis();
-        }
-        this.endRound();
-    }
     /**
      * @return List of all players who have connected to the game
      */
@@ -63,10 +61,11 @@ public class GameManager {
     public int getTimer() {return curTime;}
 
 
-    public void buzzIn(Player buzzingPlayer) {pointPlayer = buzzingPlayer;}
+    public void buzzIn(Player buzzingPlayer) {pointPlayer = buzzingPlayer;} //Convert playerlist to hashmap that uess ID as key, this takes key in
+
     /**@return True if inputted answer num is correct */
     public boolean answer(int answerNum) {
-        if(activeQuestion.getAnsNum() == answerNum) {return true;} else {return false;}
+        if(QuestionReader.getQuestion(activeQuestion).getAnsNum() == answerNum) {answeredCorrect = true;} else {answeredCorrect = false;} return answeredCorrect;
     }
 
 }

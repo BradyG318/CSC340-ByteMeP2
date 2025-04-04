@@ -13,4 +13,7 @@ public class Player {
         this.curScore = curScore; 
         isConnected = true;
     }
+    public void scoreInc(int scoreAdd) {
+        curScore+=scoreAdd;
+    }
 }

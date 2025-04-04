@@ -16,7 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class GameManager {
     ArrayList<Player> players; //A list of all players who have been added to the game at any point during runtime
     ArrayList<Player> activePlayers; //A list of all players who have responded since last heartbeat check (May not be needed)
-    Question activeQuestion;
+    Player pointPlayer;
+    int activeQuestion;
     int timerTotal, curTime;
     /**
      * Initiates an active game with a list of all connected players
@@ -24,15 +25,23 @@ public class GameManager {
      */
     public GameManager(Player... players) {
         this.players = new ArrayList<Player>(Arrays.asList(players));
-        timerTotal = 30;
+        timerTotal = 15;
+        activeQuestion = 0;
+        QuestionReader.refreshQuestionList();
+    }
+    public GameManager() {
+        timerTotal = 15;
+        activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
 
     public void startRound() {
-        activeQuestion = QuestionReader.getRandomQuestion();
+        
     }
     public void endRound() {
+        if(pointPlayer != null) {
 
+        }
     }
 
     public void addPlayer(Player newPlayer) {players.add(newPlayer);}
@@ -40,20 +49,24 @@ public class GameManager {
     private void startTimer() {
         curTime = timerTotal;
         double tempPrev =0, temp;
-        temp = System.currentTimeMillis();
+        temp = System.currentTimeMillis()/1000;
         while(curTime > 0) {
             if(temp-tempPrev > 1) {curTime--; tempPrev = temp;}
             temp = System.currentTimeMillis();
         }
+        this.endRound();
     }
     /**
      * @return List of all players who have connected to the game
      */
     public ArrayList<Player> getPlayers() {return players;}
     public int getTimer() {return curTime;}
+
+
+    public void buzzIn(Player buzzingPlayer) {pointPlayer = buzzingPlayer;}
     /**@return True if inputted answer num is correct */
-    public boolean answer(Player answeringPlayer, int answerNum) {
-        
+    public boolean answer(int answerNum) {
+        if(activeQuestion.getAnsNum() == answerNum) {return true;} else {return false;}
     }
 
 }

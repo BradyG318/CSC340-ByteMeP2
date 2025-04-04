@@ -16,4 +16,7 @@ public class Question {
         this.answers = answers;
         this.correctAns = correctAns;
     }
+    public String getQuestion() {return question;}
+    public String[] getAnswers() {return answers;}
+    public int getAnsNum() {return correctAns;}
 }

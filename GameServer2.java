@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import Gamelogic.GameManager;
+import Gamelogic.Question;
 
 public class GameServer2 {
 
@@ -144,20 +145,27 @@ public class GameServer2 {
                 
                 //game running
                 while(currQuestion < 20){
+                    Question question = game.startRound();
+
                     //send question
-                    //writer.println(game.getQuestion(currQuestion););
-                    //writer.println(game.getAnswers(currQuestion););
+                    Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                    writer.println(packet);
+                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                    writer.println(packet);
 
                     //wait until timer up
                     while(pollEndTime < System.currentTimeMillis()){
                         //polling 
                     }
 
+                    if(game.)
+
 
                     //if first q, ack, else ()
                     //loop, find lowest player time, use hash to get ip
 
                     //if ans = ans(currQuestion)
+                    
 
                 }
             

@@ -111,6 +111,7 @@ public class GameServer2 {
 
     //for all tcps
     public void handleTCPClient(Socket tcpSocket){
+        String client; //get id from protocol
         this.game.addPlayer();
         //while open 
 
@@ -132,25 +133,34 @@ public class GameServer2 {
         //if gameend 
 
         try{
-            //init input and output details
-            inStream = socket.getInputStream();
-            outStream = socket.getOutputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-            PrintWriter writer = new PrintWriter(tcpSocket.getOutputStream(), true);
-            byte[] readBuffer = new byte[200];
-            //connect to client
-            
-            //game running
-            while(currQuestion < 20){
-                //send question
-
-                //wait until timer up
-
-                //if first q, ack, else ()
-                //loop, find lowest player time, use hash to get ip
-
-                //if ans = ans(currQuestion)
+            while(socket.isConnected()){
+                //init input and output details
+                inStream = socket.getInputStream();
+                outStream = socket.getOutputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+                PrintWriter writer = new PrintWriter(tcpSocket.getOutputStream(), true);
+                byte[] readBuffer = new byte[200];
+                //connect to client
                 
+                //game running
+                while(currQuestion < 20){
+                    //send question
+                    //writer.println(game.getQuestion(currQuestion););
+                    //writer.println(game.getAnswers(currQuestion););
+
+                    //wait until timer up
+                    while(pollEndTime < System.currentTimeMillis()){
+                        //polling 
+                    }
+
+
+                    //if first q, ack, else ()
+                    //loop, find lowest player time, use hash to get ip
+
+                    //if ans = ans(currQuestion)
+
+                }
+            
                 
             }
 
@@ -164,37 +174,40 @@ public class GameServer2 {
 
     //for server, knows and sets all timestamps
     public void serverGame(){
-        if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
-            //do nothing
-        } else {
-            while (currQuestion < 20){
-                game.startRound();
-                clientPollTimes = new ConcurrentHashMap();
+        while(true){
+            if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
+                //do nothing
+            } else {
+                while (currQuestion < 20){
+                    game.startRound();
+                    clientPollTimes = new ConcurrentHashMap();
 
 
-                //set question then notify all
-                //         set question as currQuestion
+                    //set question then notify all
+                    //         set question as currQuestion
 
-                //set times
-                pollEndTime = System.currentTimeMillis() + 15000;
-                ansEndTime = pollEndTime + 10000;
+                    //set times
+                    pollEndTime = System.currentTimeMillis() + 15000;
+                    ansEndTime = pollEndTime + 10000;
 
-                //makes polltime true if it's not after poll time
-                while(pollEndTime < System.currentTimeMillis()){
-                    isPollTime = true;
+                    //makes polltime true if it's not after poll time
+                    while(pollEndTime < System.currentTimeMillis()){
+                        isPollTime = true;
+                    }
+                    isPollTime = false;
+
+                    //makes answertime true if its not after answer time
+                    while(ansEndTime < System.currentTimeMillis()){
+                        isAnswerTime = true;
+                    }
+                    isAnswerTime = false;
+
                 }
-                isPollTime = false;
 
-                //makes answertime true if its not after answer time
-                while(ansEndTime < System.currentTimeMillis()){
-                    isAnswerTime = true;
-                }
-                isAnswerTime = false;
-
+                //send winner
             }
-
-            //send winner
         }
+        
     }
 
 

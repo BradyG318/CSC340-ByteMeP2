@@ -27,18 +27,16 @@ public class GameManager {
      */
     public GameManager(Player... players) {
         for(Player p : players) {this.players.put(p.getID(), p);}
-        timerTotal = 15;
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
     public GameManager() {
-        timerTotal = 15;
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
 
-    public void startRound() {
-        
+    public Question startRound() {
+        return QuestionReader.getQuestion(activeQuestion);
     }
 
     public void endRound() {
@@ -51,6 +49,7 @@ public class GameManager {
         }
         pointPlayerID = null;
         answeredCorrect = null; 
+        activeQuestion++;
     }
 
     public void addPlayer(Player... newPlayer) {for(Player p : newPlayer) {this.players.put(p.getID(), p);}}

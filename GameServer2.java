@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +31,8 @@ public class GameServer2 {
     private boolean isPollTime, isAnswerTime;
     private GameManager game;
 
-    private ConcurrentHashMap<String, Double> clientPollTimes;
+    private ConcurrentHashMap<String, Double> clientToPollTimes;
+    private ConcurrentHashMap<Double, String> pollTimesToClient; 
 
 
     //game server init
@@ -98,8 +100,9 @@ public class GameServer2 {
                 //store ip in queue
 
                 //UDP OutOfOrder prevention
-                if(clientPollTimes.get(pollData.getID()) == null || clientPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
-                    clientPollTimes.put(pollData.getID(), pollData.getPacketNum());
+                if(clientToPollTimes.get(pollData.getID()) == null || clientToPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
+                    clientToPollTimes.put(pollData.getID(), pollData.getPacketNum());
+                    pollTimesToClient.put(pollData.getPacketNum(), pollData.getID());
                 }
                 
                 Thread.sleep(2000);
@@ -156,6 +159,8 @@ public class GameServer2 {
 
                     //if first q, ack, else ()
                     //loop, find lowest player time, use hash to get ip
+                    
+
 
                     //if ans = ans(currQuestion)
 
@@ -180,7 +185,8 @@ public class GameServer2 {
             } else {
                 while (currQuestion < 20){
                     game.startRound();
-                    clientPollTimes = new ConcurrentHashMap();
+                    clientToPollTimes = new ConcurrentHashMap();
+                    pollTimesToClient = new ConcurrentHashMap();
 
 
                     //set question then notify all
@@ -195,6 +201,7 @@ public class GameServer2 {
                         isPollTime = true;
                     }
                     isPollTime = false;
+                    game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
 
                     //makes answertime true if its not after answer time
                     while(ansEndTime < System.currentTimeMillis()){

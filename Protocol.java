@@ -170,6 +170,18 @@ public class Protocol implements Serializable {
         return this.packet;
     }
 
+    public InetAddress getSource(){
+        return senderIP;
+    }
+
+    /**
+     * gets the packet number
+     * @return
+     */
+    public Integer getPacketNum(){
+        return this.packetNumber;
+    }
+
     /**
      * Prints out the details of this packet's protocol
      */

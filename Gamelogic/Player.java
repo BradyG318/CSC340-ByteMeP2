@@ -23,6 +23,7 @@ public class Player {
     public void scoreInc(int scoreAdd) {
         curScore+=scoreAdd;
     }
+    public int getScore() {return curScore;}
     public void heartbeat(int questionNum) {lastQAns = questionNum;}
     public String getID() {return id;}
 }

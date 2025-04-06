@@ -54,11 +54,9 @@ public class QuestionReader {
             questionList.add(new Question(tempQ, tempAs, tempRightA));
         }
     }
-    public static Question getRandomQuestion() {
-        Random random = new Random();
-        int randomIndex = random.nextInt(0,questionList.size());
-        Question returnQ = questionList.get(randomIndex);
-        questionList.remove(randomIndex);
+    //Add functionality to pull Question
+    public static Question getQuestion(int index) {
+        Question returnQ = questionList.get(index);
         return returnQ;
     }
 }

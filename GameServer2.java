@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +30,7 @@ public class GameServer2 {
     private boolean isPollTime, isAnswerTime;
     private GameManager game;
 
-    private HashMap<String, Double> clientPollTimes;
+    private ConcurrentHashMap<String, Double> clientPollTimes;
 
 
     //game server init
@@ -168,7 +169,7 @@ public class GameServer2 {
         } else {
             while (currQuestion < 20){
                 game.startRound();
-                clientPollTimes = new HashMap();
+                clientPollTimes = new ConcurrentHashMap();
 
 
                 //set question then notify all

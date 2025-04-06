@@ -7,15 +7,15 @@ public class Player {
     private String id;
     private int curScore;
     private boolean isConnected;
-    private int lastComm;
+    private int lastQAns;
     
     /**
      * 
      * @param id A {@code String} object formatted as IP:PortNum
      * @param curScore A {@code int} containing the current score of the player, most likely just set to 0
-     * @param lastComm A {@code double} containing the timestamp of last communication
+     * @param lastQAns A {@code int} containing the last answered question
      */
-    public Player(String id, int curScore, int lastComm) {
+    public Player(String id, int curScore, int lastQAns) {
         this.id = id;
         this.curScore = curScore; 
         isConnected = true;
@@ -23,6 +23,6 @@ public class Player {
     public void scoreInc(int scoreAdd) {
         curScore+=scoreAdd;
     }
-    public void heartbeat(int questionNum) {lastComm = questionNum;}
+    public void heartbeat(int questionNum) {lastQAns = questionNum;}
     public String getID() {return id;}
 }

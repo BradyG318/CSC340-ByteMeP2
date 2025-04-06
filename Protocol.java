@@ -20,7 +20,7 @@ public class Protocol implements Serializable {
     private Integer destinationPort;
     private Integer senderPort;
 
-    private Integer packetNumber;
+    private Double packetNumber; //Bastardized to be a timestamp rather than number
     private Double version;     
 
     private String[] files;
@@ -40,7 +40,7 @@ public class Protocol implements Serializable {
      * @param files           The data being transfered (files for our purposes)
      */
     public Protocol(InetAddress destinationIP, InetAddress senderIP, Integer destinationPort, Integer senderPort,
-            Integer packetNum, String[] files) {
+            Double packetNum, String[] files) {
         this.protocolType = "Byte-Me";
         this.version = 1.1;
         this.destinationIP = destinationIP;
@@ -74,7 +74,7 @@ public class Protocol implements Serializable {
      * @param files           The data being transfered (files for our purposes)
      */
     public Protocol(InetAddress destinationIP, InetAddress senderIP, Integer destinationPort, Integer senderPort,
-            Integer packetNum, String data) {
+            Double packetNum, String data) {
         this.protocolType = "Byte-Me";
         this.version = 1.1;
         this.destinationIP = destinationIP;
@@ -128,9 +128,9 @@ public class Protocol implements Serializable {
             this.senderPort = Integer.parseInt(dataParts[5]);
 
             if (dataParts[6].equals("null") || dataParts[7].isEmpty()) {
-                this.packetNumber = -1; // Default value or handle appropriately
+                this.packetNumber = -1.0; // Default value or handle appropriately
             } else {
-                this.packetNumber = Integer.parseInt(dataParts[6]);
+                this.packetNumber = (double)Integer.parseInt(dataParts[6]);
             }
 
             List<String> filteredFiles = new ArrayList<>();
@@ -143,14 +143,8 @@ public class Protocol implements Serializable {
         }
     }
 
-    /**
-     * Gets the packet's number
-     * 
-     * @return Integer of packet number
-     */
-    public Integer packetNum() {
-        return this.packetNumber;
-    }
+    /**@return A {@code String} standardized ID used to reference the "Player" as a whole to the client*/
+    public String getID() {return (this.senderIP.getHostAddress() + ":" + this.senderPort);}
 
     /**
      * Gets the files/data
@@ -176,9 +170,9 @@ public class Protocol implements Serializable {
 
     /**
      * gets the packet number
-     * @return
+     * @return the double value of the packetNum
      */
-    public Integer getPacketNum(){
+    public Double getPacketNum(){
         return this.packetNumber;
     }
 

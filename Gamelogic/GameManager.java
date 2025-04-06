@@ -59,6 +59,7 @@ public class GameManager {
      */
     public ArrayList<Player> getPlayers() {return new ArrayList<Player>(players.values());}
     public int getTimer() {return curTime;}
+    public int getCurQuestion() {return this.activeQuestion;}
 
 
     public void buzzIn(String buzzingPlayerID) {pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in

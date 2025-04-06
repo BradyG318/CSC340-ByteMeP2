@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +28,8 @@ public class GameServer2 {
     private int currQuestion;
     private boolean isPollTime, isAnswerTime;
     private GameManager game;
+
+    private HashMap<String, Double> clientPollTimes;
 
 
     //game server init
@@ -92,7 +95,11 @@ public class GameServer2 {
 
                 Protocol pollData = new Protocol(incomingPacket);
                 //store ip in queue
-                // weighted queue answerOrder.add(incomingPacket.getAddress());
+
+                //UDP OutOfOrder prevention
+                if(clientPollTimes.get(pollData.getID()) == null || clientPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
+                    clientPollTimes.put(pollData.getID(), pollData.getPacketNum());
+                }
                 
                 Thread.sleep(2000);
             }
@@ -161,6 +168,7 @@ public class GameServer2 {
         } else {
             while (currQuestion < 20){
                 game.startRound();
+                clientPollTimes = new HashMap();
 
 
                 //set question then notify all

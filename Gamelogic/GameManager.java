@@ -2,7 +2,9 @@ package Gamelogic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**Class to handle the server-side game logic of the quiz. An instance of Game Manager is broadly a game instance, able to handle score, active player list, and which players are still connected to the game.*/
@@ -51,6 +53,16 @@ public class GameManager {
         answeredCorrect = null; 
         activeQuestion++;
     }
+    public String endGame() {
+        String returnString = "";
+        List<Player> playerList = new ArrayList<Player>(players.values());
+        playerList.sort(Comparator.comparingInt(p -> p.getScore()));
+        playerList = playerList.reversed();
+        for(int i = 0; i<playerList.size(); i++) {
+            returnString += "" + (i+1) + " place: " + playerList.get(i).getID() + "\n";
+        }
+        return returnString;
+    }
 
     public void addPlayer(Player... newPlayer) {for(Player p : newPlayer) {this.players.put(p.getID(), p);}}
 
@@ -62,12 +74,10 @@ public class GameManager {
     public int getCurQuestion() {return this.activeQuestion;}
     public String getAnsweringID() {return pointPlayerID;}
 
-
     public void buzzIn(String buzzingPlayerID) {pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 
     /**@return True if inputted answer num is correct */
     public boolean answer(int answerNum) {
         if(QuestionReader.getQuestion(activeQuestion).getAnsNum() == answerNum) {answeredCorrect = true;} else {answeredCorrect = false;} return answeredCorrect;
-    }
-
+    } 
 }

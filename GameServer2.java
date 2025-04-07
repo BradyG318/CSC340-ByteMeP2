@@ -50,7 +50,8 @@ public class GameServer2 {
         ansEndTime = 0;
 
         //game stats in manager
-        //game = new GameManager(); //send hashmap   
+        System.out.println("hello");
+        game = new GameManager(); //send hashmap   
         currQuestion = 0;
 
         //open sockets
@@ -268,8 +269,10 @@ public class GameServer2 {
                     ansEndTime = pollEndTime + 10000;
 
                     //makes polltime true if it's not after poll time
+                    System.out.println("eh");
                     while(pollEndTime < System.currentTimeMillis()){
                         isPollTime = true;
+                        System.out.println(System.currentTimeMillis());
                     }
                     game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
                     isPollTime = false;

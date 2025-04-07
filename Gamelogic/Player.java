@@ -6,7 +6,7 @@ package Gamelogic;
 public class Player {
     private String id;
     private int curScore;
-    private boolean isConnected;
+    private Boolean isConnected; //True connected, false inactive, null dead 
     private int lastQAns;
     
     /**
@@ -26,4 +26,9 @@ public class Player {
     public int getScore() {return curScore;}
     public void heartbeat(int questionNum) {lastQAns = questionNum;}
     public String getID() {return id;}
+    public int getLastQAns() {return lastQAns;}
+    public Boolean isActive() {return isConnected;}
+    public void setInactive() {isConnected = false;}
+    public void setActive() {isConnected = true;}
+    public void kill() {isConnected = null; }
 }

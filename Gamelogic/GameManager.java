@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameManager {
     HashMap<String, Player> players; //A list of all players who have been added to the game at any point during runtime
-    ArrayList<Player> activePlayers; //A list of all players who have responded since last heartbeat check (May not be needed)
+    ArrayList<String> playerIDs; 
+
     String pointPlayerID;
     int activeQuestion;
     int timerTotal, curTime;
@@ -27,17 +28,26 @@ public class GameManager {
      * Initiates an active game with a list of all connected players
      * @param players A list of objects (player1, player2, etc.) actively in the current managed game
      */
-    public GameManager(Player... players) {
-        for(Player p : players) {this.players.put(p.getID(), p);}
+    public GameManager(Player... playerList) {
+        this.players = new HashMap<String, Player>();
+        this.playerIDs = new ArrayList<String>();
+        for(Player p : playerList) {this.players.put(p.getID(), p); playerIDs.add(p.getID());}
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
     public GameManager() {
+        this.players = new HashMap<String, Player>();
+        this.playerIDs = new ArrayList<String>();
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
 
     public Question startRound() {
+        for(String id : playerIDs) { //Checking to make sure players have responded recently, setting them to inactive if they haven't
+            if(activeQuestion - players.get(id).getLastQAns() > 3) {
+                players.get(id).setInactive();
+            }
+        }
         return QuestionReader.getQuestion(activeQuestion);
     }
 
@@ -73,6 +83,15 @@ public class GameManager {
     public int getTimer() {return curTime;}
     public int getCurQuestion() {return this.activeQuestion;}
     public String getAnsweringID() {return pointPlayerID;}
+    public Boolean clientActivityPassThrough(String ID) {return players.get(ID).isActive();}
+
+    public void killAllTheDead() {
+        for(String id : playerIDs) { //Checking to make sure players have responded recently, setting their connected variables to null if not
+            if(!players.get(id).isActive()) {
+                players.get(id).kill(); 
+            }
+        }
+    }
 
     public void buzzIn(String buzzingPlayerID) {pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 

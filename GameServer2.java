@@ -44,14 +44,14 @@ public class GameServer2 {
 
         //game time
         this.initialStart = System.currentTimeMillis();
-        this.gameStartTime = initialStart + 20000; //universal start time (20s after server open)    
+        this.gameStartTime = initialStart + 5000; //universal start time (20s after server open) 
         
         //init times
         pollEndTime = 0;
         ansEndTime = 0;
 
         //game stats in manager
-        game = new GameManager(); //send hashmap   
+        //game = new GameManager(); //send hashmap   
         currQuestion = 0;
 
         //open sockets
@@ -67,18 +67,18 @@ public class GameServer2 {
     //thread init for udp and tcp
     public void createSocketThreads(){
         try {
-            while (true) {
-                //udp (poll answer listener)
-                Thread pollHandlerThread = new Thread(() -> handleUDP());
-                pollHandlerThread.start();
+            
+            //udp (poll answer listener)
+            Thread pollHandlerThread = new Thread(() -> handleUDP());
+            pollHandlerThread.start();
 
-                //tcp (client handler)
-                while(true){
-                    Socket tcpSocket = serverSocket.accept();
-                    Thread clientThread = new Thread(() -> handleTCPClient(tcpSocket));
-                    clientThread.start();
-                }    
-            }
+            //tcp (client handler)
+            while(true){
+                Socket tcpSocket = serverSocket.accept();
+                Thread clientThread = new Thread(() -> handleTCPClient(tcpSocket));
+                clientThread.start();
+            }    
+            
         } catch (IOException io) {
             io.printStackTrace();
         }
@@ -123,16 +123,16 @@ public class GameServer2 {
 
         //if timerEnd != null
         //if timerEnd < currTime, then wait; if end check q if first ack, else -ack
-        if(System.currentTimeMillis() > pollEndTime && isPollTime){
-            //check if in queue
-        }
+        // if(System.currentTimeMillis() > pollEndTime && isPollTime){
+        //     //check if in queue
+        // }
 
         //if ansEnd != nulldo nothing
         //else if  ansEnd < currTime stream ans = or != corr, return pts (stor pts)
         //else if currTime > ansEnd then return -20pts and store
-        if(System.currentTimeMillis() > ansEndTime && isAnswerTime){
-            //check if in queue
-        }
+        // if(System.currentTimeMillis() > ansEndTime && isAnswerTime){
+        //     //check if in queue
+        // }
 
         //if gameend 
 
@@ -151,25 +151,25 @@ public class GameServer2 {
                     if(game.clientActivityPassThrough(client)) {
                         Question question = game.startRound();
 
-                    //send question
-                    Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
-                    writer.println(packet.getData());
-                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
-                    writer.println(packet.getData());
+                        //send question
+                        Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                        writer.println(packet.getData());
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
+                        writer.println(packet.getData());
 
-                    //wait until timer up
-                    while(pollEndTime < System.currentTimeMillis() && isPollTime){
-                        //polling 
-                    }
-                                        
-                    //if this person is first
-                    if(game.getAnsweringID().equals(client)){
-                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
-                        writer.println(packet.getData());
-                    } else {
-                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "-ack");
-                        writer.println(packet.getData());
-                    }
+                        //wait until timer up
+                        while(pollEndTime < System.currentTimeMillis() && isPollTime){
+                            //polling 
+                        }
+                                            
+                        //if this person is first
+                        if(game.getAnsweringID().equals(client)){
+                            packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
+                            writer.println(packet.getData());
+                        } else {
+                            packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "-ack");
+                            writer.println(packet.getData());
+                        }
 
                         //answer time
                         while(System.currentTimeMillis() > ansEndTime && isAnswerTime){
@@ -183,32 +183,57 @@ public class GameServer2 {
                                 String line;
                                 if ((line = reader.readLine()) != null) {
                                     System.out.println("Received: " + line); //debug
-                        
                                     
+                                    //unpack packet   
+                                    Protocol unloadPacket = new Protocol(line);   
+                                    
+                                    //send answer
+                                    System.out.println(unloadPacket.files());
+                                    int number = Integer.parseInt(unloadPacket.files());
+                                    game.answer(number);
+
+                                    //send correct/incorrect
+                                    if(game.answer(number)){
+                                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "correct");
+                                        writer.println(packet.getData());
+                                    } else {
+                                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "wrong");
+                                        writer.println(packet.getData());
+                                    }
                                 }
-                            }
-            
+                            }            
                         } 
+
+                        //if answer in time? return score to player
+                        if(game.getAnsweringID().equals(client)){
+                            // packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), game.getScore(client));
+                            // writer.println(packet.getData());
+                        }
+
+                        //send next
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "next");
+                        writer.println(packet.getData());
+
+
                     } else if(game.clientActivityPassThrough(client) == null) {
                         //Thread go bye bye here
-                    } 
-                    else {
+                    } else {
                         //Send killswitch msg
                         game.killPlayer(client);
+
+                        Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "kill");
+                        writer.println(packet.getData());
                     }
 
-                    
-
-
-                    //if first q, ack, else ()
-                    //loop, find lowest player time, use hash to get ip
-                    
-
-
-                    //if ans = ans(currQuestion)
-                    
+                                       
 
                 }
+
+                //after game
+
+                //print out scores
+                //print out winner
+                
             
                 
             }
@@ -229,6 +254,7 @@ public class GameServer2 {
             if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
                 //do nothing
             } else {
+                System.out.println("Game Start!");
                 while (currQuestion < 20){
                     game.startRound();
                     clientToPollTimes = new ConcurrentHashMap();
@@ -273,14 +299,23 @@ public class GameServer2 {
 
         executorService.submit(() -> {
             //server
+            System.out.println("start server"); 
+
             serverGame();
         });
 
         executorService.submit(() -> {
             //udp and tcp
+            System.out.println("start threads"); 
+
             createSocketThreads();
         });
 
+    }
+
+    public static void main(String[] args){
+        GameServer2 trivia = new GameServer2();
+        trivia.start();
     }
 
     

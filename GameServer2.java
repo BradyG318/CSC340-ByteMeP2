@@ -97,8 +97,8 @@ public class GameServer2 {
                 pollSocket.receive(incomingPacket);
 
                 Protocol pollData = new Protocol(incomingPacket);
+                
                 //store ip in queue
-
                 //UDP OutOfOrder prevention
                 if(clientToPollTimes.get(pollData.getID()) == null || clientToPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
                     clientToPollTimes.put(pollData.getID(), pollData.getPacketNum());
@@ -208,7 +208,7 @@ public class GameServer2 {
                         isAnswerTime = true;
                     }
                     isAnswerTime = false;
-
+                    game.endRound();
                 }
 
                 //send winner

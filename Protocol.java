@@ -143,6 +143,54 @@ public class Protocol implements Serializable {
         }
     }
 
+    /**
+     * Creates a protocol and parses based on a string of data
+     * @param datas
+     */
+    public Protocol(String datas){
+        String unloadData = datas;
+        String[] dataParts = unloadData.split(",");
+
+        for (String i : dataParts) {
+            System.out.println(i);
+        }
+
+        System.out.println(dataParts[0] + " " + dataParts[1]);
+
+        if (dataParts[0].startsWith("Byte-Me") && dataParts[1].equals("1.1")) {
+            this.protocolType = "Byte-Me";
+
+
+            try {
+                this.destinationIP = InetAddress.getByName(dataParts[2]);
+                this.senderIP = InetAddress.getByName(dataParts[3]);
+            } catch (UnknownHostException e) {
+                System.out.println("Error in IP Loading");
+                e.printStackTrace();
+            }
+
+            this.destinationPort = Integer.parseInt(dataParts[4]);
+            this.senderPort = Integer.parseInt(dataParts[5]);
+
+            if (dataParts[6].equals("null") || dataParts[7].isEmpty()) {
+                this.packetNumber = -1.0; // Default value or handle appropriately
+            } else {
+                this.packetNumber = (double)Integer.parseInt(dataParts[6]);
+            }
+
+            List<String> filteredFiles = new ArrayList<>();
+            for (int fileIndex = 8; fileIndex < dataParts.length; fileIndex++) {
+                filteredFiles.add(dataParts[fileIndex]);
+            }
+            this.files = filteredFiles.toArray(new String[0]);
+
+            // packet form
+            packet = new DatagramPacket(datas.getBytes(), datas.getBytes().length, destinationIP, destinationPort);
+
+        }
+
+    }
+
     /**@return A {@code String} standardized ID used to reference the "Player" as a whole to the client*/
     public String getID() {return (this.senderIP.getHostAddress() + ":" + this.senderPort);}
 
@@ -164,8 +212,20 @@ public class Protocol implements Serializable {
         return this.packet;
     }
 
+    /**
+     * Gets source
+     * @return
+     */
     public InetAddress getSource(){
-        return senderIP;
+        return this.senderIP;
+    }
+
+    /**
+     * Gets data (string of all info)
+     * @return
+     */
+    public String getData(){
+        return this.data;
     }
 
     /**

@@ -179,7 +179,13 @@ public class GameServer2 {
                             readBuffer = new byte[200];
 
                             //put readbuffer into packet and get answer number, put answer number in game.answer();
-
+                            String line;
+                            if ((line = reader.readLine()) != null) {
+                                System.out.println("Received: " + line); //debug
+                    
+                                
+                            }
+                    
             
                         } 
                     }

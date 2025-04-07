@@ -148,7 +148,8 @@ public class GameServer2 {
                 
                 //game running
                 while(currQuestion < 20){
-                    Question question = game.startRound();
+                    if(game.clientActivityPassThrough(client)) {
+                        Question question = game.startRound();
 
                     //send question
                     Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
@@ -164,30 +165,33 @@ public class GameServer2 {
                     //if this person is first
                     if(game.getAnsweringID().equals(client)){
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
-                        writer.println(packet);
+                        writer.println(packet.getData());
                     } else {
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "-ack");
-                        writer.println(packet);
+                        writer.println(packet.getData());
                     }
 
-                    //answer time
-                    while(System.currentTimeMillis() > ansEndTime && isAnswerTime){
-                        //if this person is polling
-                        if(game.getAnsweringID().equals(client)){
-                            //read in answers
-                            reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-                            readBuffer = new byte[200];
+                        //answer time
+                        while(System.currentTimeMillis() > ansEndTime && isAnswerTime){
+                            //if this person is polling
+                            if(game.getAnsweringID().equals(client)){
+                                //read in answers
+                                reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+                                readBuffer = new byte[200];
 
-                            //put readbuffer into packet and get answer number, put answer number in game.answer();
-                            String line;
-                            if ((line = reader.readLine()) != null) {
-                                System.out.println("Received: " + line); //debug
-                    
-                                
+                                //put readbuffer into packet and get answer number, put answer number in game.answer();
+                                String line;
+                                if ((line = reader.readLine()) != null) {
+                                    System.out.println("Received: " + line); //debug
+                        
+                                    
+                                }
                             }
-                    
             
                         } 
+                    } else {
+                        game.killPlayer(client);
+                        //Add thread kill stuff here
                     }
 
                     
@@ -208,6 +212,8 @@ public class GameServer2 {
 
 
         } catch(SocketException e){
+
+            //kick out person / mark inactive
             e.printStackTrace();
         } catch(IOException e){
             e.printStackTrace();

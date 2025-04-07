@@ -49,10 +49,12 @@ public class GameServer2 {
         pollEndTime = 0;
         ansEndTime = 0;
 
+        System.out.println("OOga Booga");
         //game stats in manager
         System.out.println("hello");
         game = new GameManager(); //send hashmap   
         currQuestion = 0;
+        System.out.println("Ooooooog");
 
         //open sockets
         try {
@@ -269,16 +271,20 @@ public class GameServer2 {
                     ansEndTime = pollEndTime + 10000;
 
                     //makes polltime true if it's not after poll time
-                    System.out.println("eh");
-                    while(pollEndTime < System.currentTimeMillis()){
+                    while(pollEndTime > System.currentTimeMillis()){
                         isPollTime = true;
-                        System.out.println(System.currentTimeMillis());
+                        //System.out.println(System.currentTimeMillis());
                     }
+
+                    System.out.println("answer time!");
                     game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
                     isPollTime = false;
 
+                    System.out.println("do we get here");
+
+                    //if poller exists aka nobody polls or not
                     //makes answertime true if its not after answer time
-                    while(ansEndTime < System.currentTimeMillis()){
+                    while(ansEndTime > System.currentTimeMillis()){
                         isAnswerTime = true;
                     }
                     isAnswerTime = false;

@@ -85,6 +85,7 @@ public class GameManager {
     public String getAnsweringID() {return pointPlayerID;}
     public Boolean clientActivityPassThrough(String ID) {return players.get(ID).isActive();}
     public void killPlayer(String ID) {players.get(ID).kill();}
+    public Player getPlayer(String ID) {return players.get(ID);}
 
     public void killAllTheDead() {
         for(String id : playerIDs) { //Checking to make sure players have responded recently, setting their connected variables to null if not

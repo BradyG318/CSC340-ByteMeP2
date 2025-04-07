@@ -93,7 +93,7 @@ public class GameManager {
         }
     }
 
-    public void buzzIn(String buzzingPlayerID) {pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
+    public void buzzIn(String buzzingPlayerID) {System.out.println("DEBUG: Buzzing in "); pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 
     /**@return True if inputted answer num is correct */
     public boolean answer(int answerNum) {

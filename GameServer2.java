@@ -30,6 +30,7 @@ public class GameServer2 {
     private double initialStart, gameStartTime, pollEndTime, ansEndTime;
     private int currQuestion;
     private boolean isPollTime, isAnswerTime;
+    private boolean hasBeenPolled;
     private GameManager game;
 
     private ConcurrentHashMap<String, Double> clientToPollTimes;
@@ -48,6 +49,9 @@ public class GameServer2 {
         //init times
         pollEndTime = 0;
         ansEndTime = 0;
+
+        //init misc
+        hasBeenPolled = false;
 
         System.out.println("OOga Booga");
         //game stats in manager
@@ -105,6 +109,7 @@ public class GameServer2 {
                 //store ip in queue
                 //UDP OutOfOrder prevention
                 if(clientToPollTimes.get(pollData.getID()) == null || clientToPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
+                    hasBeenPolled = true;
                     clientToPollTimes.put(pollData.getID(), pollData.getPacketNum());
                     pollTimesToClient.put(pollData.getPacketNum(), pollData.getID());
                 }
@@ -275,20 +280,27 @@ public class GameServer2 {
                         isPollTime = true;
                         //System.out.println(System.currentTimeMillis());
                     }
-
-                    System.out.println("answer time!");
-                    game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
+                    System.out.println("DEBUG: Polling Complete");
                     isPollTime = false;
+                    
+                    if(hasBeenPolled) {
+                        System.out.println("answer time!");
+                        game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
+                        System.out.println("DEBUG: Making it past Buzz-In");
 
-                    System.out.println("do we get here");
+                        System.out.println("do we get here");
 
-                    //if poller exists aka nobody polls or not
-                    //makes answertime true if its not after answer time
-                    while(ansEndTime > System.currentTimeMillis()){
-                        isAnswerTime = true;
-                    }
-                    System.out.println("DEBUG: Answer time complete");
-                    isAnswerTime = false;
+                        //if poller exists aka nobody polls or not
+                        //makes answertime true if its not after answer time
+                        while(ansEndTime > System.currentTimeMillis()){
+                            isAnswerTime = true;
+                        }
+                        System.out.println("DEBUG: Answer time complete");
+                        isAnswerTime = false;
+                    } else {System.out.println("DEBUG: No polls submitted, sending next");}
+
+                    System.out.println("DEBUG: Round Complete");
+                    hasBeenPolled = false;
                     game.endRound();
                 }
 

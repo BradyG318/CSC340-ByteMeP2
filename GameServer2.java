@@ -49,9 +49,11 @@ public class GameServer2 {
         pollEndTime = 0;
         ansEndTime = 0;
 
+        System.out.println("OOga Booga");
         //game stats in manager
-        //game = new GameManager(); //send hashmap   
+        game = new GameManager(); //send hashmap   
         currQuestion = 0;
+        System.out.println("Ooooooog");
 
         //open sockets
         try {

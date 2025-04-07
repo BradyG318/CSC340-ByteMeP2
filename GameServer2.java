@@ -266,13 +266,14 @@ public class GameServer2 {
                     //         set question as currQuestion
 
                     //set times
+                    System.out.println("DEBUG: Time in Milli=" + System.currentTimeMillis());
                     pollEndTime = System.currentTimeMillis() + 15000;
                     ansEndTime = pollEndTime + 10000;
-
                     //makes polltime true if it's not after poll time
                     while(pollEndTime < System.currentTimeMillis()){
                         isPollTime = true;
                     }
+                    System.out.println("DEBUG: Poll time complete");
                     game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
                     isPollTime = false;
 
@@ -280,6 +281,7 @@ public class GameServer2 {
                     while(ansEndTime < System.currentTimeMillis()){
                         isAnswerTime = true;
                     }
+                    System.out.println("DEBUG: Answer time complete");
                     isAnswerTime = false;
                     game.endRound();
                 }

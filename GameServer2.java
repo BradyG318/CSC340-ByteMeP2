@@ -152,16 +152,16 @@ public class GameServer2 {
 
                     //send question
                     Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
-                    writer.println(packet);
+                    writer.println(packet.getData());
                     packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
-                    writer.println(packet);
+                    writer.println(packet.getData());
 
                     //wait until timer up
                     while(pollEndTime < System.currentTimeMillis() && isPollTime){
                         //polling 
                     }
                                         
-                    //if this person is polling
+                    //if this person is first
                     if(game.getAnsweringID().equals(client)){
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
                         writer.println(packet);

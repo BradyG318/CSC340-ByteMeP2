@@ -1,6 +1,84 @@
-(This is an example question) 
- (This is example answer 1)
- (This is example answer 2)
- (This is example answer 3)
- (This is example answer 4)
- (AnswerNum)
+In the video game Plants versus Zombies, which zombie is only unlockable in the second playthrough of the game?
+Football Zombie
+Yeti Zombie
+Dr. Zomboss
+Pogostick Zombie
+(2)
+Which Nintendo console cannot run Tomodachi Life?
+Switch
+2DS
+3DS
+Wii
+(4)
+Which mob from the video game Minecraft is not a type of jockey (one is riding the other)?
+Zombie/Chicken
+Spider/Skeleton
+Villager/Llama
+Zombie Pigman/Strider
+(3)
+In the video game Undertale, what is the name of the character whose door randomly appears in Waterfall and is unknown by the other characters?
+Sans
+Temmie
+Asriel
+Gaster
+(4)
+In the video game Cuphead, what is the best way to classify the animation/cartoon style?
+Water-color Manga
+Rubber Hose
+Comicbook Animation
+Storybook Realism
+(2)
+From the video game series Pokémon, which Eeveelution is a Dark type?
+Umbreon
+Sylveon
+Glaceon
+Espeon
+(1)
+Who is the man behind the slaughter in Five Nights at Freddy's?
+Henry Emily
+William Afton
+Mike Schmidt
+Jeremy Fitzgerald
+(2)
+What is the name of the company the player worked for before inheriting their grandfather's farm in Stardew Valley?
+Joja Corporation
+Morris Co.
+Pelican Enterprises
+Stardrop Inc.
+(1)
+What is the name of the items that give you powers in Bioshock?
+Vigors
+Tonics
+Plasminds
+Serums
+(3)
+Who do you play as in Hades?
+Hades
+Zagreus
+Thanatos
+Perseus
+(2)
+What is the name of the main protagonist in the Devil May Cry series?
+Nero
+Vergil
+Dante
+Sparda
+(3)
+What is the rare alien element used for powerful upgrades in the Borderlands series?
+Vaultonite
+Iridium
+Unobtainum
+Eridium
+(4)
+What is the name of the device that allows users to relive the memories of past assassins in Assassin's Creed?
+The Animus
+The Abstergo Machine
+The Memory Core
+The Anomaly
+(1)
+What is the name of the currency used to purchase cosmetic items in Roblox?
+Robux
+BloxCoins
+R-Cash
+Builder Bucks
+(1)

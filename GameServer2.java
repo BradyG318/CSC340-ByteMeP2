@@ -189,9 +189,12 @@ public class GameServer2 {
                             }
             
                         } 
-                    } else {
+                    } else if(game.clientActivityPassThrough(client) == null) {
+                        //Thread go bye bye here
+                    } 
+                    else {
+                        //Send killswitch msg
                         game.killPlayer(client);
-                        //Add thread kill stuff here
                     }
 
                     
@@ -212,7 +215,7 @@ public class GameServer2 {
 
 
         } catch(SocketException e){
-
+            game.killPlayer(client);
             //kick out person / mark inactive
             e.printStackTrace();
         } catch(IOException e){

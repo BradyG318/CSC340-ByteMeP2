@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import Gamelogic.GameManager;
+import Gamelogic.Player;
 import Gamelogic.Question;
 
 public class GameServer2 {
@@ -106,17 +107,16 @@ public class GameServer2 {
                     pollTimesToClient.put(pollData.getPacketNum(), pollData.getID());
                 }
                 
-                Thread.sleep(2000);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     //for all tcps
     public void handleTCPClient(Socket tcpSocket){
-        String client; //get id from protocol
-        this.game.addPlayer();
+        String client = tcpSocket.getInetAddress().getHostAddress() + ":" + tcpSocket.getPort(); //get id from protocol
+        this.game.addPlayer(new Player(client, 0, currQuestion));
         //while open 
 
 
@@ -153,15 +153,38 @@ public class GameServer2 {
                     //send question
                     Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
                     writer.println(packet);
-                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
                     writer.println(packet);
 
                     //wait until timer up
-                    while(pollEndTime < System.currentTimeMillis()){
+                    while(pollEndTime < System.currentTimeMillis() && isPollTime){
                         //polling 
                     }
+                                        
+                    //if this person is polling
+                    if(game.getAnsweringID().equals(client)){
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
+                        writer.println(packet);
+                    } else {
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "-ack");
+                        writer.println(packet);
+                    }
 
-                    if(game.)
+                    //answer time
+                    while(System.currentTimeMillis() > ansEndTime && isAnswerTime){
+                        //if this person is polling
+                        if(game.getAnsweringID().equals(client)){
+                            //read in answers
+                            reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+                            readBuffer = new byte[200];
+
+                            //put readbuffer into packet and get answer number, put answer number in game.answer();
+
+            
+                        } 
+                    }
+
+                    
 
 
                     //if first q, ack, else ()
@@ -208,8 +231,8 @@ public class GameServer2 {
                     while(pollEndTime < System.currentTimeMillis()){
                         isPollTime = true;
                     }
-                    isPollTime = false;
                     game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
+                    isPollTime = false;
 
                     //makes answertime true if its not after answer time
                     while(ansEndTime < System.currentTimeMillis()){

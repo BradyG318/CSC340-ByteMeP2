@@ -16,7 +16,16 @@ public class Question {
         this.answers = answers;
         this.correctAns = correctAns;
     }
+    /**
+     * @return A {@code String} to give question part of the Question
+     */
     public String getQuestion() {return question;}
+    /**
+     * @return A {@code String[]} to return a list of the 4 potential answers to the question
+     */
     public String[] getAnswers() {return answers;}
+    /**
+     * @return A {@code int} representing the index of the correct answer to the question
+     */
     public int getAnsNum() {return correctAns;}
 }

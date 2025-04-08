@@ -24,7 +24,7 @@ public class GameManager {
     Boolean answeredCorrect;
     /**
      * Initiates an active game with a list of all connected players
-     * @param players A list of objects (player1, player2, etc.) actively in the current managed game
+     * @param players A list of Player objects (player1, player2, etc.) actively in the current managed game. Can enter as many as necessary
      */
     public GameManager(Player... playerList) {
         this.players = new HashMap<String, Player>();
@@ -33,13 +33,19 @@ public class GameManager {
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
+    /**
+     * Initiates an active game with an empty list of players
+     */
     public GameManager() {
         this.players = new HashMap<String, Player>();
         this.playerIDs = new ArrayList<String>();
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
-
+    /**
+     * Starts a new round within the game by updating activity checks, and returning the next question in the game.
+     * @return A {@code Question} object containing the question, answers, and answer num index from the connected Questions.txt file
+     */
     public Question startRound() {
         for(String id : playerIDs) { //Checking to make sure players have responded recently, setting them to inactive if they haven't
             if(activeQuestion - players.get(id).getLastQAns() > 3) {
@@ -48,7 +54,10 @@ public class GameManager {
         }
         return QuestionReader.getQuestion(activeQuestion);
     }
-
+    /**
+     * Ends the currently active round within game manager. 
+     * Adjusts scores as needed, resets all round-scoped variables, and increments to the next question.
+     */
     public void endRound() {
         if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
             if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
@@ -61,6 +70,10 @@ public class GameManager {
         answeredCorrect = null; 
         activeQuestion++;
     }
+    /**
+     * Ends this instance of game and provides an organized list based on score
+     * @return A {@code String} object containing a list of all players ordered by highest score labelled by their IDs
+     */
     public String endGame() {
         String returnString = "";
         List<Player> playerList = new ArrayList<Player>(players.values());
@@ -71,25 +84,30 @@ public class GameManager {
         }
         return returnString;
     }
-
+    /**
+     * Adds player(s) into the game. Can take in multiple fields or just one
+     * @param newPlayer A {@code Player(s)} object or objects to be added into the current game.
+     */
     public void addPlayer(Player... newPlayer) {for(Player p : newPlayer) {this.players.put(p.getID(), p);}}
 
     /**
+     * A getter to retrieve an ArrayList of all players who have connected to an instance of gameManager
      * @return List of all players who have connected to the game
      */
     public ArrayList<Player> getPlayers() {return new ArrayList<Player>(players.values());}
     public int getTimer() {return curTime;}
     /**
+     * A getter to request the index of the current question
      * @return The {@code int} index of the current question number
      */
     public int getCurQuestion() {return this.activeQuestion;}
     /**
-     * 
+     * Gives the ID of the player currently buzzed in to answer the question
      * @return Returns the {@code String} ID of the player currently buzzed in to answer the active question
      */
     public String getAnsweringID() {return pointPlayerID;}
     /**
-     * 
+     * Passes the activity request through game manager to the active player based on a submitted ID, then returns whether or not the player is still 'active'
      * @param ID A {@code String} representing the ID of an active player
      * @return A {@code Boolean} representing the activity of the player. True=Active, False=Inactive, Null=Dead
      */
@@ -100,12 +118,15 @@ public class GameManager {
      */
     public void killPlayer(String ID) {players.get(ID).kill();}
     /**
-     * 
+     * Function to retrieve the player from the game's hashmap
      * @param ID A {@code String} representing the ID of the player object you wish to retrieve
      * @return A {@code Player} object representing all the important stats of a player
      */
     public Player getPlayer(String ID) {return players.get(ID);}
 
+    /**
+     * Sets all "inactive" players to null, effectively killing the player as it causes the TCP connection to be closed and a new one to need to be opened
+     */
     public void killAllTheDead() {
         for(String id : playerIDs) { //Checking to make sure players have responded recently, setting their connected variables to null if not
             if(!players.get(id).isActive()) {
@@ -113,7 +134,10 @@ public class GameManager {
             }
         }
     }
-
+    /**
+     * Buzzs in the submitted player ID as the active answering player for the question
+     * @param buzzingPlayerID A {@code String} representing the ID of the buzzing player
+     */
     public void buzzIn(String buzzingPlayerID) {System.out.println("DEBUG: Buzzing in "); pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 
     /**@return True if inputted answer num is correct */

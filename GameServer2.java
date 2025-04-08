@@ -365,7 +365,5 @@ public class GameServer2 {
     public static void main(String[] args){
         GameServer2 trivia = new GameServer2();
         trivia.start();
-    }
-
-    
+    } 
 }

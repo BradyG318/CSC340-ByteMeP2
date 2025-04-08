@@ -321,6 +321,7 @@ public class GameServer2 {
 
                     System.out.println("DEBUG: Round Complete");
                     hasBeenPolled = false;
+                    currQuestion++;
                     game.endRound();
                 }
 

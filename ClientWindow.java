@@ -38,6 +38,7 @@ public class ClientWindow implements ActionListener {
     private int selectedAnswer = -1;
     private Timer gameTimer;
     private boolean canAnswer = false; // Flag to indicate if the answer timer is running
+    private boolean acknowledged = false; // Flag to track if 'ack' has been received
 
     private String currentQuestionText = "";
     private String[] currentOptions = new String[4];
@@ -84,7 +85,7 @@ public class ClientWindow implements ActionListener {
             options[index].setBounds(10, 110 + (index * 20), 350, 20);
             window.add(options[index]);
             optionGroup.add(options[index]);
-            options[index].setEnabled(false);
+            options[index].setEnabled(false); // Initially disabled
             options[index].setBackground(new Color(173, 216, 230));
         }
 
@@ -128,7 +129,7 @@ public class ClientWindow implements ActionListener {
                         if (!receivingQuestion && parts.length >= 8 && parts[7].startsWith("Player ")) {
                             playerID = parts[7];
                             SwingUtilities.invokeLater(() -> {
-                                score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                score.setText(playerID + " SCORE: " + scoreNum);
                                 score.setBounds(50, 250, 200, 20); // Ensure proper width
                                 window.repaint();
                             });
@@ -171,9 +172,13 @@ public class ClientWindow implements ActionListener {
                 } else {
                     switch (serverMessage) {
                         case "ack":
-                            submit.setEnabled(true);
-                            startAnswerTimer(); // Start the 20-second answer timer
-                            canAnswer = true;
+                            acknowledged = true;
+                            if (hasPolled) {
+                                submit.setEnabled(true);
+                                enableAllOptions(); // Enable options after receiving ack
+                                startAnswerTimer(); // Start the 20-second answer timer
+                                canAnswer = true;
+                            }
                             break;
                         case "-ack":
                             JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
@@ -198,6 +203,8 @@ public class ClientWindow implements ActionListener {
                             optionGroup.clearSelection();
                             stopAnswerTimer();
                             canAnswer = false;
+                            acknowledged = false; // Reset ack for the next question
+                            disableAllOptions(); // Disable options until next poll and ack
                             break;
                         case "kill":
                             JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
@@ -252,35 +259,36 @@ public class ClientWindow implements ActionListener {
         String input = e.getActionCommand();
         switch (input) {
             case "Option 1":
-                selectedAnswer = 0;
+                if (acknowledged) selectedAnswer = 0;
                 break;
             case "Option 2":
-                selectedAnswer = 1;
+                if (acknowledged) selectedAnswer = 1;
                 break;
             case "Option 3":
-                selectedAnswer = 2;
+                if (acknowledged) selectedAnswer = 2;
                 break;
             case "Option 4":
-                selectedAnswer = 3;
+                if (acknowledged) selectedAnswer = 3;
                 break;
             case "Poll":
                 if (pollAllowed && !hasPolled) {
                     sendUDP("POLL");
                     hasPolled = true;
-                    disableAll();
-                    poll.setEnabled(false);
+                    disableAllOptions(); // Disable options after polling until ack
+                    poll.setEnabled(true);
                     stopPollTimer(); // Stop the poll timer once polled
                     // Wait for 'ack' from server over TCP to enable submit and start answer timer
                 }
                 break;
             case "Submit":
-                if (hasPolled && selectedAnswer != -1 && canAnswer) {
+                if (hasPolled && selectedAnswer != -1 && canAnswer && acknowledged) {
                     tcpOut.println("ANSWER:" + selectedAnswer);
-                    disableAll();
+                    disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
                     stopAnswerTimer();
                     canAnswer = false;
+                    acknowledged = false; // Reset ack after submitting
                 }
                 break;
             default:
@@ -309,13 +317,12 @@ public class ClientWindow implements ActionListener {
         options[1].setText(option2);
         options[2].setText(option3);
         options[3].setText(option4);
-        enableAllOptions();
+        // Options are enabled only after 'ack' is received
         window.repaint();
     }
 
     private void resetForNewQuestion() {
-        enableAllOptions();
-        poll.setEnabled(true);
+        enablePolling();
         submit.setEnabled(false);
         hasPolled = false;
         selectedAnswer = -1;
@@ -323,18 +330,28 @@ public class ClientWindow implements ActionListener {
         pollAllowed = true;
         stopAnswerTimer();
         canAnswer = false;
+        acknowledged = false;
+        disableAllOptions(); // Disable options until next poll and ack
     }
 
     private void enableAllOptions() {
+        if (acknowledged) {
+            for (JRadioButton option : options) {
+                option.setEnabled(true);
+            }
+        }
+    }
+
+    private void disableAllOptions() {
         for (JRadioButton option : options) {
-            option.setEnabled(true);
+            option.setEnabled(false);
         }
     }
 
     private void disableAll() {
-        for (JRadioButton option : options) {
-            option.setEnabled(false);
-        }
+        disableAllOptions();
+        poll.setEnabled(false);
+        submit.setEnabled(false);
     }
 
     private void enablePolling() {

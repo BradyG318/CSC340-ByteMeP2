@@ -289,8 +289,8 @@ public class GameServer2 {
                 while (currQuestion < 20){
                     System.out.println("DEBUG: Round Num: " + currQuestion);
                     game.startRound();
-                    clientToPollTimes = new ConcurrentHashMap();
-                    pollTimesToClient = new ConcurrentHashMap();
+                    clientToPollTimes = new ConcurrentHashMap<String, Double>();
+                    pollTimesToClient = new ConcurrentHashMap<Double, String>();
 
 
                     //set question then notify all

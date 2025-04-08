@@ -42,6 +42,7 @@ public class ClientWindow implements ActionListener {
     private String[] currentOptions = new String[4];
     private boolean receivingQuestion = false;
     private int expectedParts = 0;
+    private String playerID;
 
     private static SecureRandom random = new SecureRandom();
 
@@ -105,6 +106,8 @@ public class ClientWindow implements ActionListener {
 
         gameTimer = new Timer();
         new Thread(this::receiveServerMessages).start();
+
+        playerID = "Player " + 1;
     }
 
     private void receiveServerMessages() {
@@ -259,7 +262,7 @@ public class ClientWindow implements ActionListener {
             // DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
 
             //this isnt working??
-            Protocol send = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), (msg));
+            Protocol send = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), (msg + "%" + playerID));
             
             byte[] buffer = send.getData().getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);

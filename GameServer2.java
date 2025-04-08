@@ -29,7 +29,7 @@ public class GameServer2 {
     private InputStream inStream = null;
     private OutputStream outStream = null;
     private double initialStart, gameStartTime, pollEndTime, ansEndTime;
-    private int currQuestion;
+    private int currQuestion, playerID;
     private boolean isPollTime, isAnswerTime;
     private boolean hasBeenPolled;
     private GameManager game;
@@ -59,6 +59,7 @@ public class GameServer2 {
         System.out.println("hello");
         game = new GameManager(); //send hashmap   
         currQuestion = 0;
+        playerID = 0;
         System.out.println("Ooooooog");
 
         //open sockets
@@ -100,8 +101,9 @@ public class GameServer2 {
         //poll recieve - update client last question
 
         try {
-            byte[] incomingData = new byte[1024];
+            
             while (true) {
+                byte[] incomingData = new byte[1024];
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
                 pollSocket.receive(incomingPacket);
 
@@ -110,16 +112,16 @@ public class GameServer2 {
 
                 String receivedMessage = new String(receivedBytes, 0, receivedLength, StandardCharsets.UTF_8);
 
-                //System.out.println(receivedMessage);
                 Protocol pollData = new Protocol(incomingPacket);
-                String sender = incomingPacket.getAddress() + ":" + incomingPacket.getPort();
+                String[] dataParts = pollData.files().split("%");
+                String client = dataParts[1];
                 
                 //store ip in queue
                 //UDP OutOfOrder prevention
-                if(clientToPollTimes.get(pollData.getID()) == null || clientToPollTimes.get(pollData.getID()) > pollData.getPacketNum()) {
+                if(clientToPollTimes.get(client) == null || clientToPollTimes.get(client) > pollData.getPacketNum()) {
                     hasBeenPolled = true;
-                    clientToPollTimes.put(pollData.getID(), pollData.getPacketNum());
-                    pollTimesToClient.put(pollData.getPacketNum(), pollData.getID());
+                    clientToPollTimes.put(client, pollData.getPacketNum());
+                    pollTimesToClient.put(pollData.getPacketNum(), client);
                 }
                 
             }
@@ -130,8 +132,11 @@ public class GameServer2 {
 
     //for all tcps
     public void handleTCPClient(Socket tcpSocket){
-        String client = tcpSocket.getInetAddress().getHostAddress() + ":" + tcpSocket.getPort(); //get id from protocol
+        //String client = tcpSocket.getInetAddress().getHostAddress() + ":" + tcpSocket.getPort(); //get id from protocol
+        this.playerID ++;
+        String client = "Player " + playerID;
         this.game.addPlayer(new Player(client, 0, currQuestion));
+        
             
         //if timerEnd != null
         //if timerEnd < currTime, then wait; if end check q if first ack, else -ack

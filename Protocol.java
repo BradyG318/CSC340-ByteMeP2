@@ -134,7 +134,7 @@ public class Protocol implements Serializable {
             }
 
             List<String> filteredFiles = new ArrayList<>();
-            for (int fileIndex = 8; fileIndex < dataParts.length; fileIndex++) {
+            for (int fileIndex = 7; fileIndex < dataParts.length; fileIndex++) {
                 filteredFiles.add(dataParts[fileIndex]);
             }
             this.files = filteredFiles.toArray(new String[0]);

@@ -63,14 +63,14 @@ public class ClientWindow implements ActionListener {
         JOptionPane.showMessageDialog(window, "Video Game Trivia");
         window = new JFrame("Video game Trivia");
         window.setSize(400, 400);
-        window.setBounds(50, 50, 400, 400);
+        window.setBounds(50, 50, 800, 400);
         window.setLayout(null);
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
 
         question = new JLabel("Waiting for question...");
-        question.setBounds(10, 5, 350, 100);
+        question.setBounds(10, 5, 750, 100);
         window.add(question);
 
         options = new JRadioButton[4];
@@ -85,7 +85,7 @@ public class ClientWindow implements ActionListener {
         }
 
         timerLabel = new JLabel("TIMER");
-        timerLabel.setBounds(250, 250, 100, 20);
+        timerLabel.setBounds(500, 250, 100, 20);
         window.add(timerLabel);
 
         scoreNum = 0;
@@ -99,7 +99,7 @@ public class ClientWindow implements ActionListener {
         window.add(poll);
 
         submit = new JButton("Submit");
-        submit.setBounds(200, 300, 100, 20);
+        submit.setBounds(500, 300, 100, 20);
         submit.addActionListener(this);
         submit.setEnabled(false);
         window.add(submit);

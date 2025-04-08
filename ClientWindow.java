@@ -244,7 +244,10 @@ public class ClientWindow implements ActionListener {
     try {
         byte[] buffer = msg.getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
-        socket.send(packet);
+
+        //this isnt working??
+        Protocol pack = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), msg);
+        socket.send(pack.getPacket());
     } catch (Exception e) {
         e.printStackTrace();
     }

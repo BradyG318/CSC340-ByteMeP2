@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -104,6 +105,12 @@ public class GameServer2 {
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
                 pollSocket.receive(incomingPacket);
 
+                byte[] receivedBytes = incomingPacket.getData();
+                int receivedLength = incomingPacket.getLength(); // Get the actual length of the data
+
+                String receivedMessage = new String(receivedBytes, 0, receivedLength, StandardCharsets.UTF_8);
+
+                System.out.println(receivedMessage);
                 Protocol pollData = new Protocol(incomingPacket);
                 
                 //store ip in queue
@@ -316,6 +323,8 @@ public class GameServer2 {
                 }
 
                 //send winner
+
+                System.out.println("Game Over");
             }
         }
         

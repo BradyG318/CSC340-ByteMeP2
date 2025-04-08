@@ -41,6 +41,7 @@ public class ClientWindow implements ActionListener {
     private String currentQuestionText = "";
     private String[] currentOptions = new String[4];
     private boolean receivingQuestion = false;
+    private int expectedParts = 0;
 
     private static SecureRandom random = new SecureRandom();
 
@@ -115,28 +116,40 @@ public class ClientWindow implements ActionListener {
 
                 if (parts[0].equals("Byte-Me")) {
                     if (parts.length >= 8) {
-                        String dataType = parts[7]; // Assuming the actual content starts here
+                        String dataType = parts[7]; // The actual content
 
-                        if (dataType.startsWith("In the video game")) {
-                            // This looks like the question
+                        if (!receivingQuestion) {
                             currentQuestionText = dataType;
                             receivingQuestion = true;
-                        } else if (receivingQuestion && parts.length == 11) { // Assuming format: Byte-Me,..., option1,option2,option3,option4
-                            // This looks like the options following the question
-                            currentOptions[0] = parts[7];
-                            currentOptions[1] = parts[8];
-                            currentOptions[2] = parts[9];
-                            currentOptions[3] = parts[10];
-                            updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
-                            resetForNewQuestion();
-                            receivingQuestion = false; // Reset flag
-                            currentQuestionText = "";
-                            currentOptions = new String[4];
-                        } else {
-                            System.out.println("Received Byte-Me message with unexpected data: " + serverMessage);
+                            expectedParts = parts.length + 3; // Expecting 3 more parts for options
+                        } else if (receivingQuestion && parts.length >= 8 && parts.length == expectedParts) {
+                            if (parts.length >= 11) {
+                                currentOptions[0] = parts[7];
+                                currentOptions[1] = parts[8];
+                                currentOptions[2] = parts[9];
+                                currentOptions[3] = parts[10];
+                                updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
+                                resetForNewQuestion();
+                                receivingQuestion = false;
+                                currentQuestionText = "";
+                                currentOptions = new String[4];
+                                expectedParts = 0;
+                            } else {
+                                System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
+                                receivingQuestion = false; // Reset on error
+                                expectedParts = 0;
+                            }
+                        } else if (receivingQuestion) {
+                            System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
+                            // Potentially buffer or handle partial messages if needed
+                            if (parts.length >= 8) {
+                                currentQuestionText = currentQuestionText + "," + dataType; // Append if it seems like continuation
+                            }
                         }
                     } else {
-                        System.err.println("Invalid Byte-Me message format: " + serverMessage);
+                        System.err.println("Invalid Byte-Me message format (less than 8 parts): " + serverMessage);
+                        receivingQuestion = false; // Reset on error
+                        expectedParts = 0;
                     }
                 } else {
                     switch (serverMessage) {
@@ -248,6 +261,11 @@ public class ClientWindow implements ActionListener {
         //this isnt working??
         Protocol send = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), (msg + System.currentTimeMillis()));
         socket.send(send.getPacket());
+
+        // byte[] buffer = msg.getBytes();
+        // DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
+        // socket.send(packet);
+
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -295,7 +313,7 @@ public class ClientWindow implements ActionListener {
             option.setEnabled(false);
         }
     }
-
+    
     private void enablePolling() {
         pollAllowed = true;
         poll.setEnabled(true);
@@ -344,4 +362,6 @@ public class ClientWindow implements ActionListener {
             System.exit(0);
         }
     }
+
+    
 }

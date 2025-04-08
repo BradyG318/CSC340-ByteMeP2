@@ -127,7 +127,7 @@ public class GameServer2 {
 
     //for all tcps
     public void handleTCPClient(Socket tcpSocket){
-        //String client = tcpSocket.getInetAddress().getHostAddress() + ":" + tcpSocket.getPort(); //get id from protocol
+        //Make player
         this.playerID ++;
         String client = "Player " + playerID;
         this.game.addPlayer(new Player(client, 0, currQuestion));
@@ -150,7 +150,7 @@ public class GameServer2 {
 
         try{
             while(tcpSocket.isConnected()){
-                //init input and output details
+                //initial input and output details
                 inStream = tcpSocket.getInputStream();
                 outStream = tcpSocket.getOutputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
@@ -158,34 +158,29 @@ public class GameServer2 {
                 byte[] readBuffer = new byte[200];
 
 
-                //connect to client
-                // String introMessage;
-                // if ((introMessage = reader.readLine()) != null) {
-                //     System.out.println("Received: " + introMessage); //debug
-                                
-                //     //unpack packet   
-                //     Protocol unloadPacket = new Protocol(introMessage);   
-                                    
-                //     //send answer
-                //     System.out.println(unloadPacket.files());
-                // }
-
+                //send client ID
+                Protocol name = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), client);
+                writer.println(name.getData());
                 
                 //game running
                 while(currQuestion < 20){
+
                     if(game.clientActivityPassThrough(client)) {
                         Question question = game.startRound();
+                        Protocol packet;
 
-                        //send question
-                        Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                        //send question                        
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
                         writer.println(packet.getData());
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
-                        writer.println(packet.getData());
-
+                        writer.println(packet.getData());    
+                                                                         
                         //wait until timer up
-                        while(pollEndTime < System.currentTimeMillis() && isPollTime){
+                        while(pollEndTime > System.currentTimeMillis() && isPollTime){
                             //polling 
+                            System.out.println("waiting");
                         }
+
                         if(game.getAnsweringID() != null) {                 
                             //if this person is first
                             if(game.getAnsweringID().equals(client)){
@@ -197,7 +192,7 @@ public class GameServer2 {
                             }
 
                             //answer time
-                            while(System.currentTimeMillis() > ansEndTime && isAnswerTime){
+                            while(System.currentTimeMillis() < ansEndTime && isAnswerTime){
                                 //if this person is polling
                                 if(game.getAnsweringID().equals(client)){
                                     //read in answers

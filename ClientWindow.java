@@ -71,7 +71,7 @@ public class ClientWindow implements ActionListener {
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
 
-        window.getContentPane().setBackground(new Color(173, 216, 230));
+        window.getContentPane().setBackground(new Color(173, 216, 250));
 
         question = new JLabel("Waiting for question...");
         question.setBounds(10, 5, 750, 100);
@@ -86,7 +86,7 @@ public class ClientWindow implements ActionListener {
             window.add(options[index]);
             optionGroup.add(options[index]);
             options[index].setEnabled(false); // Initially disabled
-            options[index].setBackground(new Color(173, 216, 230));
+            options[index].setBackground(new Color(173, 216, 250));
         }
 
         timerLabel = new JLabel("TIMER");

@@ -174,11 +174,17 @@ public class GameServer2 {
                         writer.println(packet.getData());
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
                         writer.println(packet.getData());    
+                        System.out.println("bug galore");
+
+                        //wait to start
+                        while(System.currentTimeMillis() < gameStartTime){
+                            //wait for game start
+                        }
                                                                          
                         //wait until timer up
                         while(pollEndTime > System.currentTimeMillis() && isPollTime){
                             //polling 
-                            System.out.println("waiting");
+                            // System.out.println("waiting");
                         }
 
                         if(game.getAnsweringID() != null) {                 
@@ -192,7 +198,7 @@ public class GameServer2 {
                             }
 
                             //answer time
-                            while(System.currentTimeMillis() < ansEndTime && isAnswerTime){
+                            while(ansEndTime > System.currentTimeMillis() && isAnswerTime){
                                 //if this person is polling
                                 if(game.getAnsweringID().equals(client)){
                                     //read in answers
@@ -321,7 +327,6 @@ public class GameServer2 {
                 }
 
                 //send winner
-
                 System.out.println("Game Over");
             }
         }
@@ -336,6 +341,7 @@ public class GameServer2 {
     public void start() {
         System.out.println("Starting...");
 
+        //Thread 1
         executorService.submit(() -> {
             //server
             System.out.println("start server"); 
@@ -343,6 +349,7 @@ public class GameServer2 {
             serverGame();
         });
 
+        //Thread(s) 2
         executorService.submit(() -> {
             //udp and tcp
             System.out.println("start threads"); 
@@ -352,6 +359,10 @@ public class GameServer2 {
 
     }
 
+    /**
+     * Run server
+     * @param args none needed
+     */
     public static void main(String[] args){
         GameServer2 trivia = new GameServer2();
         trivia.start();

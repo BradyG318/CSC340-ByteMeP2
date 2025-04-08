@@ -38,7 +38,9 @@ public class GameServer2 {
     private ConcurrentHashMap<Double, String> pollTimesToClient; 
 
 
-    //game server init
+    /**
+     * Initialize game server
+     */
     public GameServer2(){
         //init server and timer thread
         executorService = Executors.newFixedThreadPool(2);
@@ -72,10 +74,11 @@ public class GameServer2 {
         }
     }
 
-    //thread init for udp and tcp
+    /**
+     * Create socket threads for UDP and TCP
+     */
     public void createSocketThreads(){
-        try {
-            
+        try {            
             //udp (poll answer listener)
             Thread pollHandlerThread = new Thread(() -> handleUDP());
             pollHandlerThread.start();
@@ -92,32 +95,24 @@ public class GameServer2 {
         }
     }
 
+    /**
+     * Takes in UDP requests, in this case, any poll request. Only listens for UDP,
+     */
     public void handleUDP(){
-        //listen, should only get for button so stay open
-
-        //if recieve, open packet and read file information: getIP- ip getfile- send timestamp
-        //put in weighted q, weigh by timestamp 
-
-        //poll recieve - update client last question
-
+        //try socket
         try {
-            
             while (true) {
+                //receive packet
                 byte[] incomingData = new byte[1024];
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
                 pollSocket.receive(incomingPacket);
 
-                byte[] receivedBytes = incomingPacket.getData();
-                int receivedLength = incomingPacket.getLength(); // Get the actual length of the data
-
-                String receivedMessage = new String(receivedBytes, 0, receivedLength, StandardCharsets.UTF_8);
-
+                //take in data
                 Protocol pollData = new Protocol(incomingPacket);
                 String[] dataParts = pollData.files().split("%");
-                String client = dataParts[1];
+                String client = dataParts[1]; 
                 
-                //store ip in queue
-                //UDP OutOfOrder prevention
+                //store client ID in queue
                 if(clientToPollTimes.get(client) == null || clientToPollTimes.get(client) > pollData.getPacketNum()) {
                     hasBeenPolled = true;
                     clientToPollTimes.put(client, pollData.getPacketNum());

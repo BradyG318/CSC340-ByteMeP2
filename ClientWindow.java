@@ -276,7 +276,7 @@ public class ClientWindow implements ActionListener {
                     hasPolled = true;
                     disableAllOptions(); // Disable options after polling until ack
                     poll.setEnabled(true);
-                    stopPollTimer(); // Stop the poll timer once polled
+                    // Stop the poll timer once polled?
                     // Wait for 'ack' from server over TCP to enable submit and start answer timer
                 }
                 break;

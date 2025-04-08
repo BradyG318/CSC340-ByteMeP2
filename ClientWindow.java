@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +22,8 @@ public class ClientWindow implements ActionListener {
     private JLabel question;
     private JLabel timerLabel;
     private JLabel score;
-    private TimerTask clock;
+    private TimerTask pollTimerTask;
+    private TimerTask answerTimerTask;
     private int scoreNum;
 
     private JFrame window;
@@ -37,6 +37,7 @@ public class ClientWindow implements ActionListener {
     private boolean hasPolled = false;
     private int selectedAnswer = -1;
     private Timer gameTimer;
+    private boolean canAnswer = false; // Flag to indicate if the answer timer is running
 
     private String currentQuestionText = "";
     private String[] currentOptions = new String[4];
@@ -68,6 +69,8 @@ public class ClientWindow implements ActionListener {
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
+
+        window.getContentPane().setBackground(new Color(173, 216, 230));
 
         question = new JLabel("Waiting for question...");
         question.setBounds(10, 5, 750, 100);
@@ -125,6 +128,7 @@ public class ClientWindow implements ActionListener {
                             currentQuestionText = dataType;
                             receivingQuestion = true;
                             expectedParts = parts.length + 3; // Expecting 3 more parts for options
+                            startPollTimer(); // Start the 15-second poll timer
                         } else if (receivingQuestion && parts.length >= 8 && parts.length == expectedParts) {
                             if (parts.length >= 11) {
                                 currentOptions[0] = parts[7];
@@ -141,6 +145,7 @@ public class ClientWindow implements ActionListener {
                                 System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
                                 receivingQuestion = false; // Reset on error
                                 expectedParts = 0;
+                                stopPollTimer();
                             }
                         } else if (receivingQuestion) {
                             System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
@@ -153,21 +158,29 @@ public class ClientWindow implements ActionListener {
                         System.err.println("Invalid Byte-Me message format (less than 8 parts): " + serverMessage);
                         receivingQuestion = false; // Reset on error
                         expectedParts = 0;
+                        stopPollTimer();
                     }
                 } else {
                     switch (serverMessage) {
                         case "ack":
                             submit.setEnabled(true);
+                            startAnswerTimer(); // Start the 20-second answer timer
+                            canAnswer = true;
                             break;
                         case "-ack":
                             JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
                             poll.setEnabled(false);
+                            pollAllowed = false;
                             break;
                         case "correct":
                             JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                            stopAnswerTimer();
+                            canAnswer = false;
                             break;
                         case "wrong":
                             JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
+                            stopAnswerTimer();
+                            canAnswer = false;
                             break;
                         case "next":
                             enablePolling();
@@ -175,12 +188,16 @@ public class ClientWindow implements ActionListener {
                             hasPolled = false;
                             selectedAnswer = -1;
                             optionGroup.clearSelection();
+                            stopAnswerTimer();
+                            canAnswer = false;
                             break;
                         case "kill":
                             JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
                             disableAll();
                             poll.setEnabled(false);
                             submit.setEnabled(false);
+                            stopPollTimer();
+                            stopAnswerTimer();
                             if (gameTimer != null) {
                                 gameTimer.cancel();
                                 gameTimer.purge();
@@ -191,7 +208,9 @@ public class ClientWindow implements ActionListener {
                             if (serverMessage.startsWith("TIMER:")) {
                                 try {
                                     int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
-                                    startOrUpdateTimer(duration);
+                                    // This timer might be for overall game time, not poll/answer
+                                    // You can handle it as needed or ignore if not relevant to poll/answer timings.
+                                    // startOrUpdateGeneralTimer(duration);
                                 } catch (NumberFormatException e) {
                                     System.err.println("Invalid TIMER format: " + serverMessage);
                                 }
@@ -235,20 +254,23 @@ public class ClientWindow implements ActionListener {
                 selectedAnswer = 3;
                 break;
             case "Poll":
-                if (pollAllowed) {
+                if (pollAllowed && !hasPolled) {
                     sendUDP("POLL");
                     hasPolled = true;
                     disableAll();
                     poll.setEnabled(false);
-                    // Wait for 'ack' from server over TCP to enable submit
+                    stopPollTimer(); // Stop the poll timer once polled
+                    // Wait for 'ack' from server over TCP to enable submit and start answer timer
                 }
                 break;
             case "Submit":
-                if (hasPolled && selectedAnswer != -1) {
+                if (hasPolled && selectedAnswer != -1 && canAnswer) {
                     tcpOut.println("ANSWER:" + selectedAnswer);
                     disableAll();
                     submit.setEnabled(false);
                     hasPolled = false;
+                    stopAnswerTimer();
+                    canAnswer = false;
                 }
                 break;
             default:
@@ -258,22 +280,14 @@ public class ClientWindow implements ActionListener {
 
     private void sendUDP(String msg) {
         try {
-            // byte[] buffer = msg.getBytes();
-            // DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
-
-            //this isnt working??
             Protocol send = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), (msg + "%" + playerID));
-            
             byte[] buffer = send.getData().getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
-            
             socket.send(packet);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 
     private void updateQuestion(String questionText, String option1, String option2, String option3, String option4) {
         question.setText(questionText);
@@ -289,15 +303,6 @@ public class ClientWindow implements ActionListener {
         window.repaint();
     }
 
-    private void startOrUpdateTimer(int duration) {
-        pollAllowed = true;
-        if (clock != null) {
-            clock.cancel();
-        }
-        clock = new TimerCode(duration, timerLabel);
-        gameTimer.schedule(clock, 0, 1000);
-    }
-
     private void resetForNewQuestion() {
         enableAllOptions();
         poll.setEnabled(true);
@@ -305,6 +310,9 @@ public class ClientWindow implements ActionListener {
         hasPolled = false;
         selectedAnswer = -1;
         optionGroup.clearSelection();
+        pollAllowed = true;
+        stopAnswerTimer();
+        canAnswer = false;
     }
 
     private void enableAllOptions() {
@@ -318,43 +326,86 @@ public class ClientWindow implements ActionListener {
             option.setEnabled(false);
         }
     }
-    
+
     private void enablePolling() {
         pollAllowed = true;
         poll.setEnabled(true);
     }
-    // this class is responsible for running the timer on the window
-    public class TimerCode extends TimerTask {
-        private int duration;
-        private JLabel timerLabel;
 
-        public TimerCode(int duration, JLabel timerLabel) {
-            this.duration = duration;
-            this.timerLabel = timerLabel;
+    private void startPollTimer() {
+        pollAllowed = true;
+        if (pollTimerTask != null) {
+            pollTimerTask.cancel();
         }
-
-        @Override
-        public void run() {
-            if (duration < 0) {
+        pollTimerTask = new TimerTask() {
+            int duration = 15;
+            @Override
+            public void run() {
+                if (duration < 0) {
+                    SwingUtilities.invokeLater(() -> {
+                        timerLabel.setText("Poll Timer Expired");
+                        poll.setEnabled(false);
+                        pollAllowed = false;
+                        window.repaint();
+                    });
+                    this.cancel();
+                    return;
+                }
+                Color textColor = (duration < 6) ? Color.red : Color.black;
+                int currentDuration = duration;
                 SwingUtilities.invokeLater(() -> {
-                    timerLabel.setText("Timer expired");
+                    timerLabel.setForeground(textColor);
+                    timerLabel.setText(String.valueOf(currentDuration));
                     window.repaint();
-                    pollAllowed = false;
-                    submit.setEnabled(false);
                 });
-                this.cancel();
-                return;
+                duration--;
             }
+        };
+        gameTimer.schedule(pollTimerTask, 0, 1000);
+    }
 
-            Color textColor = (duration < 6) ? Color.red : Color.black;
-            int currentDuration = duration;
+    private void stopPollTimer() {
+        if (pollTimerTask != null) {
+            pollTimerTask.cancel();
+            pollTimerTask = null;
+        }
+    }
 
-            SwingUtilities.invokeLater(() -> {
-                timerLabel.setForeground(textColor);
-                timerLabel.setText(String.valueOf(currentDuration));
-                window.repaint();
-            });
-            duration--;
+    private void startAnswerTimer() {
+        if (answerTimerTask != null) {
+            answerTimerTask.cancel();
+        }
+        answerTimerTask = new TimerTask() {
+            int duration = 20;
+            @Override
+            public void run() {
+                if (duration < 0) {
+                    SwingUtilities.invokeLater(() -> {
+                        timerLabel.setText("Answer Timer Expired");
+                        submit.setEnabled(false);
+                        canAnswer = false;
+                        window.repaint();
+                    });
+                    this.cancel();
+                    return;
+                }
+                Color textColor = (duration < 6) ? Color.red : Color.black;
+                int currentDuration = duration;
+                SwingUtilities.invokeLater(() -> {
+                    timerLabel.setForeground(textColor);
+                    timerLabel.setText(String.valueOf(currentDuration));
+                    window.repaint();
+                });
+                duration--;
+            }
+        };
+        gameTimer.schedule(answerTimerTask, 0, 1000);
+    }
+
+    private void stopAnswerTimer() {
+        if (answerTimerTask != null) {
+            answerTimerTask.cancel();
+            answerTimerTask = null;
         }
     }
 
@@ -367,6 +418,4 @@ public class ClientWindow implements ActionListener {
             System.exit(0);
         }
     }
-
-    
 }

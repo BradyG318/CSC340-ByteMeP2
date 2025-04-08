@@ -282,6 +282,7 @@ public class GameServer2 {
             } else {
                 System.out.println("Game Start!");
                 while (currQuestion < 20){
+                    System.out.println("DEBUG: Round Num: " + currQuestion);
                     game.startRound();
                     clientToPollTimes = new ConcurrentHashMap();
                     pollTimesToClient = new ConcurrentHashMap();
@@ -320,6 +321,7 @@ public class GameServer2 {
 
                     System.out.println("DEBUG: Round Complete");
                     hasBeenPolled = false;
+                    currQuestion++;
                     game.endRound();
                 }
 

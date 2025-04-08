@@ -79,10 +79,31 @@ public class GameManager {
      */
     public ArrayList<Player> getPlayers() {return new ArrayList<Player>(players.values());}
     public int getTimer() {return curTime;}
+    /**
+     * @return The {@code int} index of the current question number
+     */
     public int getCurQuestion() {return this.activeQuestion;}
+    /**
+     * 
+     * @return Returns the {@code String} ID of the player currently buzzed in to answer the active question
+     */
     public String getAnsweringID() {return pointPlayerID;}
+    /**
+     * 
+     * @param ID A {@code String} representing the ID of an active player
+     * @return A {@code Boolean} representing the activity of the player. True=Active, False=Inactive, Null=Dead
+     */
     public Boolean clientActivityPassThrough(String ID) {return players.get(ID).isActive();}
+    /**
+     * 
+     * @param ID A {@code String} representing the ID of the player you wish to mark as killed
+     */
     public void killPlayer(String ID) {players.get(ID).kill();}
+    /**
+     * 
+     * @param ID A {@code String} representing the ID of the player object you wish to retrieve
+     * @return A {@code Player} object representing all the important stats of a player
+     */
     public Player getPlayer(String ID) {return players.get(ID);}
 
     public void killAllTheDead() {

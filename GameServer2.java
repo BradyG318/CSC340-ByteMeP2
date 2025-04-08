@@ -124,10 +124,7 @@ public class GameServer2 {
     public void handleTCPClient(Socket tcpSocket){
         String client = tcpSocket.getInetAddress().getHostAddress() + ":" + tcpSocket.getPort(); //get id from protocol
         this.game.addPlayer(new Player(client, 0, currQuestion));
-        //while open 
-
-
-
+            
         //if timerEnd != null
         //if timerEnd < currTime, then wait; if end check q if first ack, else -ack
         // if(System.currentTimeMillis() > pollEndTime && isPollTime){
@@ -144,14 +141,27 @@ public class GameServer2 {
         //if gameend 
 
         try{
-            while(socket.isConnected()){
+            while(tcpSocket.isConnected()){
                 //init input and output details
-                inStream = socket.getInputStream();
-                outStream = socket.getOutputStream();
+                inStream = tcpSocket.getInputStream();
+                outStream = tcpSocket.getOutputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
                 PrintWriter writer = new PrintWriter(tcpSocket.getOutputStream(), true);
                 byte[] readBuffer = new byte[200];
+
+
                 //connect to client
+                // String introMessage;
+                // if ((introMessage = reader.readLine()) != null) {
+                //     System.out.println("Received: " + introMessage); //debug
+                                
+                //     //unpack packet   
+                //     Protocol unloadPacket = new Protocol(introMessage);   
+                                    
+                //     //send answer
+                //     System.out.println(unloadPacket.files());
+                // }
+
                 
                 //game running
                 while(currQuestion < 20){
@@ -213,8 +223,9 @@ public class GameServer2 {
 
                         //if answer in time? return score to player
                         if(game.getAnsweringID().equals(client)){
-                            // packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), game.getScore(client));
-                            // writer.println(packet.getData());
+                            String score = game.getPlayer(client).getScore() + "";
+                            packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
+                            writer.println(packet.getData());
                         }
 
                         //send next

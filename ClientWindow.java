@@ -175,7 +175,7 @@ public class ClientWindow implements ActionListener {
                             acknowledged = true;
                             if (hasPolled) {
                                 submit.setEnabled(true);
-                                enableAllOptions(); // Enable options after receiving ack
+                                enableAllOptions(); // Enable options here, after receiving 'ack'
                                 startAnswerTimer(); // Start the 20-second answer timer
                                 canAnswer = true;
                             }

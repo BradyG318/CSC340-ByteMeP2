@@ -110,8 +110,9 @@ public class GameServer2 {
 
                 String receivedMessage = new String(receivedBytes, 0, receivedLength, StandardCharsets.UTF_8);
 
-                System.out.println(receivedMessage);
+                //System.out.println(receivedMessage);
                 Protocol pollData = new Protocol(incomingPacket);
+                String sender = incomingPacket.getAddress() + ":" + incomingPacket.getPort();
                 
                 //store ip in queue
                 //UDP OutOfOrder prevention

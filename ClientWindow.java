@@ -242,12 +242,12 @@ public class ClientWindow implements ActionListener {
 
     private void sendUDP(String msg) {
     try {
-        byte[] buffer = msg.getBytes();
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
+        // byte[] buffer = msg.getBytes();
+        // DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
 
         //this isnt working??
-        Protocol pack = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), msg);
-        socket.send(pack.getPacket());
+        Protocol send = new Protocol(serverAddress, InetAddress.getLocalHost(), serverPort, socket.getLocalPort(),(double) System.currentTimeMillis(), (msg + System.currentTimeMillis()));
+        socket.send(send.getPacket());
     } catch (Exception e) {
         e.printStackTrace();
     }

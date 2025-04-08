@@ -2,8 +2,6 @@
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,37 +21,32 @@ public class ClientWindow implements ActionListener {
     private JRadioButton options[];
     private ButtonGroup optionGroup;
     private JLabel question;
-    private JLabel timer;
+    private JLabel timerLabel; // Renamed to avoid conflict
     private JLabel score;
     private TimerTask clock;
     private int scoreNum;
 
     private JFrame window;
-    private DatagramSocket socket;
+    private DatagramSocket udpSocket; // Separate UDP socket for polling
     private InetAddress serverAddress;
-    private int serverPort = 1983; // UDP port
-    private Socket tcpSocket;
+    private int udpServerPort = 1983; // UDP port for polling
+    private Socket tcpSocket; // TCP socket for questions, answers, etc.
     private BufferedReader tcpIn;
     private PrintWriter tcpOut;
-    private String clientID;
-    private boolean gameStarted = false;
     private boolean pollAllowed = true;
     private boolean hasPolled = false;
     private int selectedAnswer = -1;
+    private Timer gameTimer;
 
     private static SecureRandom random = new SecureRandom();
 
     public ClientWindow(String serverIp) {
         try {
-            socket = new DatagramSocket();
             serverAddress = InetAddress.getByName(serverIp);
-            tcpSocket = new Socket(serverIp, 1987); // TCP port
+            udpSocket = new DatagramSocket();
+            tcpSocket = new Socket(serverIp, 1987);
             tcpIn = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
             tcpOut = new PrintWriter(tcpSocket.getOutputStream(), true);
-
-            // Receive initial client ID from the server
-            clientID = tcpIn.readLine();
-            System.out.println("Connected to server with ID: " + clientID);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,12 +69,12 @@ public class ClientWindow implements ActionListener {
             options[index].setBounds(10, 110 + (index * 20), 350, 20);
             window.add(options[index]);
             optionGroup.add(options[index]);
-            options[index].setEnabled(false); // Initially disabled
+            options[index].setEnabled(false);
         }
 
-        timer = new JLabel("TIMER");
-        timer.setBounds(250, 250, 100, 20);
-        window.add(timer);
+        timerLabel = new JLabel("TIMER");
+        timerLabel.setBounds(250, 250, 100, 20);
+        window.add(timerLabel);
 
         scoreNum = 0;
         score = new JLabel("SCORE: " + scoreNum);
@@ -96,32 +89,17 @@ public class ClientWindow implements ActionListener {
         submit = new JButton("Submit");
         submit.setBounds(200, 300, 100, 20);
         submit.addActionListener(this);
-        submit.setEnabled(false); // Initially disabled
+        submit.setEnabled(false);
         window.add(submit);
 
         window.setSize(400, 400);
         window.setBounds(50, 50, 400, 400);
         window.setLayout(null);
         window.setVisible(true);
-        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        window.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent windowEvent) {
-                try {
-                    if (tcpSocket != null && !tcpSocket.isClosed()) {
-                        tcpSocket.close();
-                    }
-                    if (socket != null && !socket.isClosed()) {
-                        socket.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.exit(0);
-            }
-        });
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(false);
 
-        // Start a thread to listen for server messages
+        gameTimer = new Timer();
         new Thread(this::receiveServerMessages).start();
     }
 
@@ -129,20 +107,53 @@ public class ClientWindow implements ActionListener {
         try {
             String serverMessage;
             while ((serverMessage = tcpIn.readLine()) != null) {
-                System.out.println("Received from server: " + serverMessage);
+                System.out.println("Received from server (TCP): " + serverMessage);
                 if (serverMessage.startsWith("QUESTION:")) {
                     String questionData = serverMessage.substring("QUESTION:".length());
-                    String[] parts = questionData.split(":");
-                    if (parts.length == 5) {
-                        updateQuestion(parts[0], parts[1], parts[2], parts[3], parts[4]);
+                    String[] parts = questionData.split("\n"); // Split by newline
+                    if (parts.length == 6) { // Expecting question + 4 options + correct index
+                        String questionText = parts[0];
+                        String option1 = parts[1];
+                        String option2 = parts[2];
+                        String option3 = parts[3];
+                        String option4 = parts[4];
+                        // We don't need to display the correct answer index on the client
+                        updateQuestion(questionText, option1, option2, option3, option4);
                         resetForNewQuestion();
                     } else {
                         System.err.println("Invalid QUESTION format: " + serverMessage);
                     }
+                } else if (serverMessage.equals("ack")) {
+                    submit.setEnabled(true);
+                } else if (serverMessage.equals("-ack")) {
+                    JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
+                    poll.setEnabled(false);
+                } else if (serverMessage.equals("correct")) {
+                    JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                    // Optionally update score immediately
+                } else if (serverMessage.equals("wrong")) {
+                    JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
+                    // Optionally update score immediately
+                } else if (serverMessage.equals("next")) {
+                    enablePolling();
+                    submit.setEnabled(false);
+                    hasPolled = false;
+                    selectedAnswer = -1;
+                    optionGroup.clearSelection();
+                } else if (serverMessage.equals("kill")) {
+                    JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                    disableAll();
+                    poll.setEnabled(false);
+                    submit.setEnabled(false);
+                    if (gameTimer != null) {
+                        gameTimer.cancel();
+                        gameTimer.purge();
+                    }
+                    System.exit(0);
                 } else if (serverMessage.startsWith("TIMER:")) {
                     try {
-                        int newDuration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
-                        resetTimer(newDuration);
+                        int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
+                        startOrUpdateTimer(duration);
                     } catch (NumberFormatException e) {
                         System.err.println("Invalid TIMER format: " + serverMessage);
                     }
@@ -153,24 +164,8 @@ public class ClientWindow implements ActionListener {
                     } catch (NumberFormatException e) {
                         System.err.println("Invalid SCORE format: " + serverMessage);
                     }
-                } else if (serverMessage.equals("ROUND_END")) {
-                    enablePolling();
-                    submit.setEnabled(false);
-                    hasPolled = false;
-                    selectedAnswer = -1;
-                    optionGroup.clearSelection();
-                } else if (serverMessage.equals("GAME_OVER")) {
-                    JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
-                    disableAll();
-                    poll.setEnabled(false);
-                    submit.setEnabled(false);
-                } else if (serverMessage.equals("TOO_LATE_POLL")) {
-                    JOptionPane.showMessageDialog(window, "Polling is closed for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
-                    poll.setEnabled(false);
-                } else if (serverMessage.equals("DISABLE_POLL")) {
-                    poll.setEnabled(false);
-                } else if (serverMessage.equals("ENABLE_SUBMIT")) {
-                    submit.setEnabled(true);
+                } else {
+                    System.out.println("Received unknown message: " + serverMessage);
                 }
             }
         } catch (IOException e) {
@@ -179,24 +174,28 @@ public class ClientWindow implements ActionListener {
             System.exit(1);
         }
     }
-
+    
     private void updateQuestion(String questionText, String option1, String option2, String option3, String option4) {
         question.setText(questionText);
+        updateOptions(option1, option2, option3, option4);
+    }
+
+    private void updateOptions(String option1, String option2, String option3, String option4) {
         options[0].setText(option1);
         options[1].setText(option2);
         options[2].setText(option3);
         options[3].setText(option4);
+        enableAllOptions();
         window.repaint();
     }
 
-    private void resetTimer(int duration) {
+    private void startOrUpdateTimer(int duration) {
+        pollAllowed = true;
         if (clock != null) {
             clock.cancel();
         }
-        clock = new TimerCode(duration);
-        Timer t = new Timer();
-        t.schedule(clock, 0, 1000);
-        pollAllowed = true;
+        clock = new TimerCode(duration, timerLabel);
+        gameTimer.schedule(clock, 0, 1000);
     }
 
     private void resetForNewQuestion() {
@@ -243,15 +242,15 @@ public class ClientWindow implements ActionListener {
                     hasPolled = true;
                     disableAll();
                     poll.setEnabled(false);
-                    // Server should enable submit after the poll phase
-                    // submit.setEnabled(true);
+                    // Wait for 'ack' from server over TCP to enable submit
                 }
                 break;
             case "Submit":
                 if (hasPolled && selectedAnswer != -1) {
-                    sendUDP("ANSWER:" + selectedAnswer);
+                    tcpOut.println("ANSWER:" + selectedAnswer); // Send answer over TCP
                     disableAll();
                     submit.setEnabled(false);
+                    hasPolled = false; // Reset polled state after submitting
                 }
                 break;
             default:
@@ -261,10 +260,9 @@ public class ClientWindow implements ActionListener {
 
     private void sendUDP(String msg) {
         try {
-            String messageWithID = clientID + ":" + msg; // Include client ID
-            byte[] buffer = messageWithID.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, serverPort);
-            socket.send(packet);
+            byte[] buffer = msg.getBytes();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, udpServerPort);
+            udpSocket.send(packet);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -278,26 +276,35 @@ public class ClientWindow implements ActionListener {
 
     public class TimerCode extends TimerTask {
         private int duration;
+        private JLabel timerLabel;
 
-        public TimerCode(int duration) {
+        public TimerCode(int duration, JLabel timerLabel) {
             this.duration = duration;
+            this.timerLabel = timerLabel;
         }
 
         @Override
         public void run() {
             if (duration < 0) {
-                timer.setText("Timer expired");
-                window.repaint();
+                SwingUtilities.invokeLater(() -> {
+                    timerLabel.setText("Timer expired");
+                    window.repaint();
+                    pollAllowed = false;
+                    submit.setEnabled(false);
+                });
                 this.cancel();
-                pollAllowed = false;
-                submit.setEnabled(false);
                 return;
             }
 
-            timer.setForeground(duration < 6 ? Color.red : Color.black);
-            timer.setText(duration + "");
+            Color textColor = (duration < 6) ? Color.red : Color.black;
+            int currentDuration = duration;
+
+            SwingUtilities.invokeLater(() -> {
+                timerLabel.setForeground(textColor);
+                timerLabel.setText(String.valueOf(currentDuration));
+                window.repaint();
+            });
             duration--;
-            window.repaint();
         }
     }
 

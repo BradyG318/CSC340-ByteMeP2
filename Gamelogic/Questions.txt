@@ -1,4 +1,4 @@
-In the video game Plants versus Zombies, which zombie is only unlockable in the second playthrough of the game?
+In the video game Plants versus Zombies which zombie is \nonly unlockable in the second playthrough of the game?
 Football Zombie
 Yeti Zombie
 Dr. Zomboss
@@ -16,19 +16,19 @@ Spider/Skeleton
 Villager/Llama
 Zombie Pigman/Strider
 2
-In the video game Undertale, what is the name of the character whose door randomly appears in Waterfall and is unknown by the other characters?
+In the video game Undertale what is the name of the character whose door randomly appears in Waterfall and is unknown by the other characters?
 Sans
 Temmie
 Asriel
 Gaster
 3
-In the video game Cuphead, what is the best way to classify the animation/cartoon style?
+In the video game Cuphead what is the best way to classify the animation/cartoon style?
 Water-color Manga
 Rubber Hose
 Comicbook Animation
 Storybook Realism
 1
-From the video game series Pokémon, which Eeveelution is a Dark type?
+From the video game series Pokémon which Eeveelution is a Dark type?
 Umbreon
 Sylveon
 Glaceon
@@ -82,7 +82,7 @@ BloxCoins
 R-Cash
 Builder Bucks
 0
-In Titanfall 2, what is the name of the character who mentors Jack Cooper?
+In Titanfall 2 what is the name of the character who mentors Jack Cooper?
 Captain Keyes
 Steve
 Captain Lastimosa

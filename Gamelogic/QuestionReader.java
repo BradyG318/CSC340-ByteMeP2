@@ -67,7 +67,10 @@ public class QuestionReader {
         }
         System.out.println("Ooga4");
     }
-    /**Returns a question based on the index of the question number */
+    /**
+     * @param index {@code int} representing the index of the question to retrieve
+     * @return A {@code Question} object that contains the question, answers, and correct answer index of the questions
+    */
     public static Question getQuestion(int index) {
         Question returnQ = questionList.get(index);
         return returnQ;

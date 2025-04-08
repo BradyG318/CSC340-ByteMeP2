@@ -85,17 +85,17 @@ public class ClientWindow implements ActionListener {
             window.add(options[index]);
             optionGroup.add(options[index]);
             options[index].setEnabled(false);
-            options[index].setBackground(new Color(173, 216, 230)); // Set radio button background to light blue
+            options[index].setBackground(new Color(173, 216, 230));
         }
-        
 
         timerLabel = new JLabel("TIMER");
-        timerLabel.setBounds(500, 250, 200, 20);
+        timerLabel.setBounds(500, 250, 100, 20);
         window.add(timerLabel);
 
         scoreNum = 0;
-        score = new JLabel("SCORE: " + scoreNum);
-        score.setBounds(50, 250, 100, 20);
+        playerID = "Player 1"; // Assuming Player ID is initially "Player 1"
+        score = new JLabel("(" + playerID + ") SCORE: " + scoreNum);
+        score.setBounds(50, 250, 200, 20); // Increased width to accommodate Player ID
         window.add(score);
 
         poll = new JButton("Poll");
@@ -111,8 +111,6 @@ public class ClientWindow implements ActionListener {
 
         gameTimer = new Timer();
         new Thread(this::receiveServerMessages).start();
-
-        playerID = "Player " + 1;
     }
 
     private void receiveServerMessages() {
@@ -126,7 +124,15 @@ public class ClientWindow implements ActionListener {
                     if (parts.length >= 8) {
                         String dataType = parts[7]; // The actual content
 
-                        if (!receivingQuestion) {
+                        // Check for Player ID in the initial Byte-Me message (assuming it's the 8th part)
+                        if (!receivingQuestion && parts.length >= 8 && parts[7].startsWith("Player ")) {
+                            playerID = parts[7];
+                            SwingUtilities.invokeLater(() -> {
+                                score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                score.setBounds(50, 250, 200, 20); // Ensure proper width
+                                window.repaint();
+                            });
+                        } else if (!receivingQuestion) {
                             currentQuestionText = dataType;
                             receivingQuestion = true;
                             expectedParts = parts.length + 3; // Expecting 3 more parts for options
@@ -219,7 +225,9 @@ public class ClientWindow implements ActionListener {
                             } else if (serverMessage.startsWith("SCORE:")) {
                                 try {
                                     scoreNum = Integer.parseInt(serverMessage.substring("SCORE:".length()));
-                                    score.setText("SCORE: " + scoreNum);
+                                    SwingUtilities.invokeLater(() -> {
+                                        score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                    });
                                 } catch (NumberFormatException e) {
                                     System.err.println("Invalid SCORE format: " + serverMessage);
                                 }

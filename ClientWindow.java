@@ -85,10 +85,12 @@ public class ClientWindow implements ActionListener {
             window.add(options[index]);
             optionGroup.add(options[index]);
             options[index].setEnabled(false);
+            options[index].setBackground(new Color(173, 216, 230)); // Set radio button background to light blue
         }
+        
 
         timerLabel = new JLabel("TIMER");
-        timerLabel.setBounds(500, 250, 100, 20);
+        timerLabel.setBounds(500, 250, 200, 20);
         window.add(timerLabel);
 
         scoreNum = 0;

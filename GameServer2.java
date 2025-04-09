@@ -328,6 +328,12 @@ public class GameServer2 {
 
                 //send winner
                 System.out.println("Game Over");
+                double expire = System.currentTimeMillis() + 100000; //after 100 sec
+                while(expire > System.currentTimeMillis()){
+                    //wait
+                }
+
+                System.exit(-1);
             }
         }
         

@@ -106,11 +106,11 @@ public class Protocol implements Serializable {
         String unloadData = new String(packet.getData(), 0, packet.getLength());
         String[] dataParts = unloadData.split(",");
 
-        for (String i : dataParts) {
-            System.out.println(i);
-        }
+        // for (String i : dataParts) {
+        //     System.out.println(i);
+        // }
 
-        System.out.println(dataParts[0] + " " + dataParts[1]);
+        // System.out.println(dataParts[0] + " " + dataParts[1]);
 
         if (dataParts[0].startsWith("Byte-Me") && dataParts[1].equals("1.1")) {
             this.protocolType = "Byte-Me";

@@ -191,9 +191,10 @@ public class GameServer2 {
                         
 
 
-                        if(game.getAnsweringID() != null) {                 
+                        if(game.getAnsweringID() != null) {    
+                            String tempAnsweringID = game.getAnsweringID();              
                             //if this person is first
-                            if(game.getAnsweringID().equals(client)){
+                            if(tempAnsweringID.equals(client)){
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
                                 writer.println(packet.getData());
                                 
@@ -207,7 +208,7 @@ public class GameServer2 {
                             while(ansEndTime > System.currentTimeMillis()){
                                 System.out.print(" Are");
                                 //if this person is polling
-                                if(game.getAnsweringID().equals(client)){
+                                if(tempAnsweringID.equals(client)){
                                     System.out.print(" We");
                                     //read in answers
                                     reader = new BufferedReader(new InputStreamReader(inStream));
@@ -243,7 +244,8 @@ public class GameServer2 {
                                 } else {System.out.println("Skipping Everything Cuz Bugged"); }         
                             } 
                             //if answer in time? return score to player
-                            if(game.getAnsweringID().equals(client)){
+                            System.out.println("DEBUG: Client = " + client);
+                            if(tempAnsweringID.equals(client)){
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());

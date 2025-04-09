@@ -211,14 +211,16 @@ public class GameServer2 {
                                 if(tempAnsweringID.equals(client)){
                                     System.out.print(" We");
                                     //read in answers
-                                    reader = new BufferedReader(new InputStreamReader(inStream));
+                                    //reader = new BufferedReader(new InputStreamReader(inStream));
                                     readBuffer = new byte[200];
                                     System.out.print(" Dying");
 
                                     //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
-                                    String line = "";
+                                    String line = reader.readLine();
 
-                                    if ((line = reader.readLine()) != null) {
+                                    System.out.println(" at");
+                                    System.out.println("DEBUG: Reader=" + line);
+                                    if (line != null) {
                                         System.out.println("Received: " + line); //debug
                                         
                                         //unpack packet   
@@ -246,6 +248,7 @@ public class GameServer2 {
                             //if answer in time? return score to player
                             System.out.println("DEBUG: Client = " + client);
                             if(tempAnsweringID.equals(client)){
+                                System.out.println("DEBUG: Sending " + client + " score");
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());

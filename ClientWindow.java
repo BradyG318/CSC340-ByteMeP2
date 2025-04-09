@@ -25,7 +25,7 @@ public class ClientWindow implements ActionListener {
     private JLabel score;
     private TimerTask pollTimerTask;
     private TimerTask answerTimerTask;
-    private int scoreNum;
+    private String scoreNum;
 
     private JFrame window;
     private DatagramSocket socket;
@@ -94,7 +94,7 @@ public class ClientWindow implements ActionListener {
         timerLabel.setBounds(500, 250, 100, 20);
         window.add(timerLabel);
 
-        scoreNum = 0;
+        scoreNum = "0";
         playerID = "Player 1"; // Assuming Player ID is initially "Player 1"
         score = new JLabel("(" + playerID + ") SCORE: " + scoreNum);
         score.setBounds(50, 250, 200, 20); // Increased width to accommodate Player ID
@@ -165,6 +165,7 @@ public class ClientWindow implements ActionListener {
 
                     switch (dataType.trim()) { // Trim whitespace for robust comparison
                         case "score":
+                            parts[8] = scoreNum;
                         break;
                         case "ack":
                             System.out.println("Received ack!"); // Debugging log
@@ -239,7 +240,7 @@ public class ClientWindow implements ActionListener {
                                 }
                             } else if (serverMessage.startsWith("SCORE:")) {
                                 try {
-                                    scoreNum = Integer.parseInt(serverMessage.substring("SCORE:".length()));
+                                    //scoreNum = Integer.parseInt(serverMessage.substring("SCORE:".length()));
                                     SwingUtilities.invokeLater(() -> {
                                         score.setText("(" + playerID + ") SCORE: " + scoreNum);
                                     });

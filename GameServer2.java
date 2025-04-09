@@ -225,19 +225,27 @@ public class GameServer2 {
                                         unloadPacket.protocolDetails();   
                                         
                                         //send answer
-                                        System.out.println(unloadPacket.files());
-                                        int number = Integer.parseInt(unloadPacket.files());
-                                        game.answer(number);
+                                        System.out.println(unloadPacket.files() + "  228");
 
-
-                                        //send correct/incorrect
-                                        if(game.answer(number)){
-                                            packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "correct");
-                                            writer.println(packet.getData());                                            
+                                        if(unloadPacket.files().equals("No Answer")){
+                                            //do nothing
                                         } else {
-                                            packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "wrong");
-                                            writer.println(packet.getData());
+                                            int number = Integer.parseInt(unloadPacket.files());
+                                            game.answer(number);
+                                            //send correct/incorrect
+                                            if(game.answer(number)){
+                                                packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "correct");
+                                                writer.println(packet.getData());                                            
+                                            } else {
+                                                packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "wrong");
+                                                writer.println(packet.getData());
+                                            }
+
                                         }
+                                    
+
+
+                                        
                         
                                     } else {System.out.println("Reader != null");} //It's somehow skipping this line
                                 

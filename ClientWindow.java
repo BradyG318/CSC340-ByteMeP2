@@ -333,6 +333,17 @@ public class ClientWindow implements ActionListener {
                     acknowledged = false; // Reset ack after submitting
                     selectedAnswer = -1; // Reset selected answer
                     optionGroup.clearSelection(); // Clear radio button selection
+                } else {
+                    Protocol answerPacket;
+                    try {
+                        answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), "No Answer");
+                        System.out.println("pushing");
+                        tcpOut.println(answerPacket.getData());
+                    } catch (UnknownHostException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                    
                 }
                 // Thread.currentThread().notifyAll();
                 break;

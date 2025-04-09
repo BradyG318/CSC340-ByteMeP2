@@ -182,14 +182,28 @@ public class ClientWindow implements ActionListener {
                             pollAllowed = false;
                             break;
                         case "correct":
+                            enablePolling();
                             JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                            submit.setEnabled(false);
+                            hasPolled=false;
+                            selectedAnswer=-1;
+                            optionGroup.clearSelection();
                             stopAnswerTimer();
                             canAnswer = false;
+                            acknowledged=false;
+                            disableAllOptions();
                             break;
                         case "wrong":
+                            enablePolling();
                             JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
+                            submit.setEnabled(false);
+                            hasPolled=false;
+                            selectedAnswer=-1;
+                            optionGroup.clearSelection();
                             stopAnswerTimer();
                             canAnswer = false;
+                            acknowledged = false;
+                            disableAllOptions();
                             break;
                         case "next":
                             enablePolling();

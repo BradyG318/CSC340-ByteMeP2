@@ -9,6 +9,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -122,61 +123,56 @@ public class ClientWindow implements ActionListener {
                 String[] parts = serverMessage.split(",");
 
                 if (parts[0].equals("Byte-Me")) {
-                    if (parts.length >= 8) {
-                        String dataType = parts[7]; // The actual content
+                    String dataType = parts[7]; // The actual content
 
-                        // Check for Player ID in the initial Byte-Me message (assuming it's the 8th part)
-                        if (!receivingQuestion && parts.length >= 8 && parts[7].startsWith("Player ")) {
-                            playerID = parts[7];
-                            SwingUtilities.invokeLater(() -> {
-                                score.setText(playerID + " SCORE: " + scoreNum);
-                                score.setBounds(50, 250, 200, 20); // Ensure proper width
-                                window.repaint();
-                            });
-                        } else if (!receivingQuestion) {
-                            currentQuestionText = dataType;
-                            receivingQuestion = true;
-                            expectedParts = parts.length + 3; // Expecting 3 more parts for options
-                            startPollTimer(); // Start the 15-second poll timer
-                        } else if (receivingQuestion && parts.length >= 8 && parts.length == expectedParts) {
-                            if (parts.length >= 11) {
-                                currentOptions[0] = parts[7];
-                                currentOptions[1] = parts[8];
-                                currentOptions[2] = parts[9];
-                                currentOptions[3] = parts[10];
-                                updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
-                                resetForNewQuestion();
-                                receivingQuestion = false;
-                                currentQuestionText = "";
-                                currentOptions = new String[4];
-                                expectedParts = 0;
-                            } else {
-                                System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
-                                receivingQuestion = false; // Reset on error
-                                expectedParts = 0;
-                                stopPollTimer();
-                            }
-                        } else if (receivingQuestion) {
-                            System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
-                            // Potentially buffer or handle partial messages if needed
-                            if (parts.length >= 8) {
-                                currentQuestionText = currentQuestionText + "," + dataType; // Append if it seems like continuation
-                            }
+                    // Three mutually exclusive else if statements
+                    if (parts[7].startsWith("Player ")) {
+                        playerID = parts[7];
+                        SwingUtilities.invokeLater(() -> {
+                            score.setText(playerID + " SCORE: " + scoreNum);
+                            score.setBounds(50, 250, 200, 20);
+                            window.repaint();
+                        });
+                    } else if (parts[7].startsWith("q")) {
+                        currentQuestionText = parts[8];
+                        receivingQuestion = true;
+                        expectedParts = parts.length + 3; // Expecting 3 more parts for options
+                        startPollTimer(); // Start the 15-second poll timer
+                    } else if (parts[7].startsWith("answer")) {
+                        if (parts.length >= 12) {
+                            currentOptions[0] = parts[8];
+                            currentOptions[1] = parts[9];
+                            currentOptions[2] = parts[10];
+                            currentOptions[3] = parts[11];
+                            updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
+                            resetForNewQuestion();
+                            receivingQuestion = false;
+                            currentQuestionText = "";
+                            currentOptions = new String[4];
+                            expectedParts = 0;
+                        } else {
+                            System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
+                            receivingQuestion = false; // Reset on error
+                            expectedParts = 0;
+                            stopPollTimer();
                         }
-                    } else {
-                        System.err.println("Invalid Byte-Me message format (less than 8 parts): " + serverMessage);
-                        receivingQuestion = false; // Reset on error
-                        expectedParts = 0;
-                        stopPollTimer();
+                    } else if (receivingQuestion) {
+                        System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
+                        if (parts.length >= 8) {
+                            currentQuestionText = currentQuestionText + "," + dataType;
+                        }
                     }
-                } else {
-                    switch (serverMessage) {
+
+                    switch (dataType.trim()) { // Trim whitespace for robust comparison
                         case "ack":
+                            System.out.println("Received ack!"); // Debugging log
+                            stopPollTimer();
                             acknowledged = true;
+                            poll.setEnabled(false); // Don't disable poll button after clicking
                             if (hasPolled) {
                                 submit.setEnabled(true);
                                 enableAllOptions(); // Enable options here, after receiving 'ack'
-                                startAnswerTimer(); // Start the 20-second answer timer
+                                startAnswerTimer(); // Start the 10-second answer timer
                                 canAnswer = true;
                             }
                             break;
@@ -219,13 +215,11 @@ public class ClientWindow implements ActionListener {
                             }
                             System.exit(0);
                             break;
-                        default:
+                        default: //shouldn't really get to here
                             if (serverMessage.startsWith("TIMER:")) {
                                 try {
                                     int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
-                                    // This timer might be for overall game time, not poll/answer
-                                    // You can handle it as needed or ignore if not relevant to poll/answer timings.
-                                    // startOrUpdateGeneralTimer(duration);
+
                                 } catch (NumberFormatException e) {
                                     System.err.println("Invalid TIMER format: " + serverMessage);
                                 }
@@ -275,20 +269,27 @@ public class ClientWindow implements ActionListener {
                     sendUDP("POLL");
                     hasPolled = true;
                     disableAllOptions(); // Disable options after polling until ack
-                    poll.setEnabled(true);
-                    // Stop the poll timer once polled?
-                    // Wait for 'ack' from server over TCP to enable submit and start answer timer
+                    poll.setEnabled(true); // Don't disable poll button after clicking
+                    // The poll timer will be stopped upon receiving 'ack'
                 }
                 break;
             case "Submit":
                 if (hasPolled && selectedAnswer != -1 && canAnswer && acknowledged) {
-                    tcpOut.println("ANSWER:" + selectedAnswer);
+                    String[] ans = {"My Answer", selectedAnswer + ""}; 
+                    try {
+                        Protocol answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), ans);
+                        tcpOut.println(answerPacket.getData());
+                    } catch (UnknownHostException ee) {
+                        System.out.println("no host");
+                    }
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
                     stopAnswerTimer();
                     canAnswer = false;
                     acknowledged = false; // Reset ack after submitting
+                    selectedAnswer = -1; // Reset selected answer
+                    optionGroup.clearSelection(); // Clear radio button selection
                 }
                 break;
             default:
@@ -336,9 +337,12 @@ public class ClientWindow implements ActionListener {
 
     private void enableAllOptions() {
         if (acknowledged) {
+            System.out.println("enableAllOptions() called. acknowledged is true. Enabling options."); // Debugging log
             for (JRadioButton option : options) {
                 option.setEnabled(true);
             }
+        } else {
+            System.out.println("enableAllOptions() called. acknowledged is false. Options NOT enabled."); // Debugging log
         }
     }
 
@@ -393,8 +397,11 @@ public class ClientWindow implements ActionListener {
 
     private void stopPollTimer() {
         if (pollTimerTask != null) {
+            System.out.println("Stopping poll timer."); // Debugging log
             pollTimerTask.cancel();
             pollTimerTask = null;
+        } else {
+            System.out.println("stopPollTimer() called but pollTimerTask is null."); // Debugging log
         }
     }
 
@@ -403,7 +410,7 @@ public class ClientWindow implements ActionListener {
             answerTimerTask.cancel();
         }
         answerTimerTask = new TimerTask() {
-            int duration = 20;
+            int duration = 10;
             @Override
             public void run() {
                 if (duration < 0) {

@@ -157,10 +157,18 @@ public class GameServer2 {
                         Protocol packet;
 
                         //send question                 
-                        String[] questionSend = {"q", question.getQuestion()};   
+                        String[] questionSend = {"q", question.getQuestion()}; 
+
+                        //send answer
+                        String[] answerSend =   {"answer", null, null, null, null};
+                        String[] pollAnswers = question.getAnswers();
+                        for(int ansEnter = 1; ansEnter < 5; ansEnter++){
+                            answerSend[ansEnter] = pollAnswers[ansEnter-1];
+                        }
+                        
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), questionSend);
                         writer.println(packet.getData());
-                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), answerSend);
                         writer.println(packet.getData());    
                         System.out.println("bug galore");
 

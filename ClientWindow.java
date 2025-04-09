@@ -278,7 +278,10 @@ public class ClientWindow implements ActionListener {
                     String[] ans = {"My Answer", selectedAnswer + ""}; 
                     try {
                         Protocol answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), ans);
-                        tcpOut.println(answerPacket.getData());
+                        tcpOut.print(answerPacket.getData() + "\n");
+                        tcpOut.flush();
+                        System.out.println("DEBUG: Sent=" + answerPacket.getData());
+
                     } catch (UnknownHostException ee) {
                         System.out.println("no host");
                     }

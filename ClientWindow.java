@@ -9,6 +9,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -122,47 +123,47 @@ public class ClientWindow implements ActionListener {
                 String[] parts = serverMessage.split(",");
 
                 if (parts[0].equals("Byte-Me")) {
-                        String dataType = parts[7]; // The actual content
+                    String dataType = parts[7]; // The actual content
 
-                        // Three mutually exclusive else if statements
-                        if (parts[7].startsWith("Player ")) {
-                            playerID = parts[7];
-                            SwingUtilities.invokeLater(() -> {
-                                score.setText(playerID + " SCORE: " + scoreNum);
-                                score.setBounds(50, 250, 200, 20);
-                                window.repaint();
-                            });
-                        } else if (parts[7].startsWith("q")) {
-                            currentQuestionText = parts[8];
-                            receivingQuestion = true;
-                            expectedParts = parts.length + 3; // Expecting 3 more parts for options
-                            startPollTimer(); // Start the 15-second poll timer
-                        } else if (parts[7].startsWith("answer")) {
-                            if (parts.length >= 12) {
-                                currentOptions[0] = parts[8];
-                                currentOptions[1] = parts[9];
-                                currentOptions[2] = parts[10];
-                                currentOptions[3] = parts[11];
-                                updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
-                                resetForNewQuestion();
-                                receivingQuestion = false;
-                                currentQuestionText = "";
-                                currentOptions = new String[4];
-                                expectedParts = 0;
-                            } else {
-                                System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
-                                receivingQuestion = false; // Reset on error
-                                expectedParts = 0;
-                                stopPollTimer();
-                            }
-                        } else if (receivingQuestion) {
-                            System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
-                            if (parts.length >= 8) {
-                                currentQuestionText = currentQuestionText + "," + dataType;
-                            }
+                    // Three mutually exclusive else if statements
+                    if (parts[7].startsWith("Player ")) {
+                        playerID = parts[7];
+                        SwingUtilities.invokeLater(() -> {
+                            score.setText(playerID + " SCORE: " + scoreNum);
+                            score.setBounds(50, 250, 200, 20);
+                            window.repaint();
+                        });
+                    } else if (parts[7].startsWith("q")) {
+                        currentQuestionText = parts[8];
+                        receivingQuestion = true;
+                        expectedParts = parts.length + 3; // Expecting 3 more parts for options
+                        startPollTimer(); // Start the 15-second poll timer
+                    } else if (parts[7].startsWith("answer")) {
+                        if (parts.length >= 12) {
+                            currentOptions[0] = parts[8];
+                            currentOptions[1] = parts[9];
+                            currentOptions[2] = parts[10];
+                            currentOptions[3] = parts[11];
+                            updateQuestion(currentQuestionText, currentOptions[0], currentOptions[1], currentOptions[2], currentOptions[3]);
+                            resetForNewQuestion();
+                            receivingQuestion = false;
+                            currentQuestionText = "";
+                            currentOptions = new String[4];
+                            expectedParts = 0;
+                        } else {
+                            System.out.println("Received Byte-Me message with insufficient options: " + serverMessage);
+                            receivingQuestion = false; // Reset on error
+                            expectedParts = 0;
+                            stopPollTimer();
                         }
+                    } else if (receivingQuestion) {
+                        System.out.println("Received intermediate Byte-Me data or incorrect number of parts: " + serverMessage);
+                        if (parts.length >= 8) {
+                            currentQuestionText = currentQuestionText + "," + dataType;
+                        }
+                    }
 
-                    switch (dataType) { // Trim whitespace for robust comparison
+                    switch (dataType.trim()) { // Trim whitespace for robust comparison
                         case "ack":
                             System.out.println("Received ack!"); // Debugging log
                             stopPollTimer();
@@ -171,7 +172,7 @@ public class ClientWindow implements ActionListener {
                             if (hasPolled) {
                                 submit.setEnabled(true);
                                 enableAllOptions(); // Enable options here, after receiving 'ack'
-                                startAnswerTimer(); // Start the 20-second answer timer
+                                startAnswerTimer(); // Start the 10-second answer timer
                                 canAnswer = true;
                             }
                             break;
@@ -274,13 +275,21 @@ public class ClientWindow implements ActionListener {
                 break;
             case "Submit":
                 if (hasPolled && selectedAnswer != -1 && canAnswer && acknowledged) {
-                    tcpOut.println("ANSWER:" + selectedAnswer);
+                    String[] ans = {"My Answer", selectedAnswer + ""}; 
+                    try {
+                        Protocol answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), ans);
+                        tcpOut.println(answerPacket.getData());
+                    } catch (UnknownHostException ee) {
+                        System.out.println("no host");
+                    }
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
                     stopAnswerTimer();
                     canAnswer = false;
                     acknowledged = false; // Reset ack after submitting
+                    selectedAnswer = -1; // Reset selected answer
+                    optionGroup.clearSelection(); // Clear radio button selection
                 }
                 break;
             default:

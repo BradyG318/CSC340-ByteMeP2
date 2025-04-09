@@ -121,8 +121,11 @@ public class ClientWindow implements ActionListener {
                 System.out.println("Received from server (TCP): " + serverMessage);
                 String[] parts = serverMessage.split(",");
 
+                System.out.println(parts[7]);
+                String takeIn = parts[7];
+
                 if (parts[0].equals("Byte-Me")) {
-                    if (parts.length >= 8) {
+                    if (parts[7].startsWith("Player ")) {
                         String dataType = parts[7]; // The actual content
 
                         // Check for Player ID in the initial Byte-Me message (assuming it's the 8th part)
@@ -164,86 +167,81 @@ public class ClientWindow implements ActionListener {
                             }
                         }
                     } else {
-                        System.err.println("Invalid Byte-Me message format (less than 8 parts): " + serverMessage);
-                        receivingQuestion = false; // Reset on error
-                        expectedParts = 0;
-                        stopPollTimer();
-                    }
-                } else {
-                    switch (serverMessage) {
-                        case "ack":
-                            System.out.println("Received ack!"); // Debugging log
-                            stopPollTimer();
-                            acknowledged = true;
-                            if (hasPolled) {
-                                submit.setEnabled(true);
-                                enableAllOptions(); // Enable options here, after receiving 'ack'
-                                startAnswerTimer(); // Start the 20-second answer timer
-                                canAnswer = true;
-                            }
-                            break;
-                        case "-ack":
-                            JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
-                            poll.setEnabled(false);
-                            pollAllowed = false;
-                            break;
-                        case "correct":
-                            JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
-                            stopAnswerTimer();
-                            canAnswer = false;
-                            break;
-                        case "wrong":
-                            JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
-                            stopAnswerTimer();
-                            canAnswer = false;
-                            break;
-                        case "next":
-                            enablePolling();
-                            submit.setEnabled(false);
-                            hasPolled = false;
-                            selectedAnswer = -1;
-                            optionGroup.clearSelection();
-                            stopAnswerTimer();
-                            canAnswer = false;
-                            acknowledged = false; // Reset ack for the next question
-                            disableAllOptions(); // Disable options until next poll and ack
-                            break;
-                        case "kill":
-                            JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
-                            disableAll();
-                            poll.setEnabled(false);
-                            submit.setEnabled(false);
-                            stopPollTimer();
-                            stopAnswerTimer();
-                            if (gameTimer != null) {
-                                gameTimer.cancel();
-                                gameTimer.purge();
-                            }
-                            System.exit(0);
-                            break;
-                        default: //shouldn't really get to here
-                            if (serverMessage.startsWith("TIMER:")) {
-                                try {
-                                    int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
-
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Invalid TIMER format: " + serverMessage);
+                        switch (takeIn) {
+                            case "ack":
+                                System.out.println("Received ack!"); // Debugging log
+                                stopPollTimer();
+                                acknowledged = true;
+                                if (hasPolled) {
+                                    submit.setEnabled(true);
+                                    enableAllOptions(); // Enable options here, after receiving 'ack'
+                                    startAnswerTimer(); // Start the 20-second answer timer
+                                    canAnswer = true;
                                 }
-                            } else if (serverMessage.startsWith("SCORE:")) {
-                                try {
-                                    scoreNum = Integer.parseInt(serverMessage.substring("SCORE:".length()));
-                                    SwingUtilities.invokeLater(() -> {
-                                        score.setText("(" + playerID + ") SCORE: " + scoreNum);
-                                    });
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Invalid SCORE format: " + serverMessage);
+                                break;
+                            case "-ack":
+                                JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
+                                poll.setEnabled(false);
+                                pollAllowed = false;
+                                break;
+                            case "correct":
+                                JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                                stopAnswerTimer();
+                                canAnswer = false;
+                                break;
+                            case "wrong":
+                                JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
+                                stopAnswerTimer();
+                                canAnswer = false;
+                                break;
+                            case "next":
+                                enablePolling();
+                                submit.setEnabled(false);
+                                hasPolled = false;
+                                selectedAnswer = -1;
+                                optionGroup.clearSelection();
+                                stopAnswerTimer();
+                                canAnswer = false;
+                                acknowledged = false; // Reset ack for the next question
+                                disableAllOptions(); // Disable options until next poll and ack
+                                break;
+                            case "kill":
+                                JOptionPane.showMessageDialog(window, "Game Over!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                                disableAll();
+                                poll.setEnabled(false);
+                                submit.setEnabled(false);
+                                stopPollTimer();
+                                stopAnswerTimer();
+                                if (gameTimer != null) {
+                                    gameTimer.cancel();
+                                    gameTimer.purge();
                                 }
-                            } else {
-                                System.out.println("Received unknown message: " + serverMessage);
-                            }
-                            break;
+                                System.exit(0);
+                                break;
+                            default: //shouldn't really get to here
+                                if (serverMessage.startsWith("TIMER:")) {
+                                    try {
+                                        int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
+    
+                                    } catch (NumberFormatException e) {
+                                        System.err.println("Invalid TIMER format: " + serverMessage);
+                                    }
+                                } else if (serverMessage.startsWith("SCORE:")) {
+                                    try {
+                                        scoreNum = Integer.parseInt(serverMessage.substring("SCORE:".length()));
+                                        SwingUtilities.invokeLater(() -> {
+                                            score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                        });
+                                    } catch (NumberFormatException e) {
+                                        System.err.println("Invalid SCORE format: " + serverMessage);
+                                    }
+                                } else {
+                                    System.out.println("Received unknown message: " + serverMessage);
+                                }
+                                break;
+                        }
                     }
-                }
+                } 
             }
         } catch (IOException e) {
             e.printStackTrace();

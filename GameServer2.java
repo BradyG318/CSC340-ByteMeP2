@@ -125,7 +125,10 @@ public class GameServer2 {
         }
     }
 
-    //for all tcps
+    /**
+     * TCP client maker
+     * @param tcpSocket
+     */
     public void handleTCPClient(Socket tcpSocket){
         //Make player
         this.playerID ++;
@@ -174,7 +177,7 @@ public class GameServer2 {
 
                         if(hasBeenPolled){
                             while(!isAnswerTime){
-                            //System.out.println("oblivion");
+                            System.out.println("oblivion");
                             }
                         }
                         

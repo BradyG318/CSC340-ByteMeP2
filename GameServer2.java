@@ -204,12 +204,16 @@ public class GameServer2 {
                             }
 
                             //answer time
+                            System.out.print("Where");
                             while(ansEndTime > System.currentTimeMillis()){
+                                System.out.print(" Are");
                                 //if this person is polling
                                 if(game.getAnsweringID().equals(client)){
+                                    System.out.print(" We");
                                     //read in answers
-                                    reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+                                    //reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
                                     readBuffer = new byte[200];
+                                    System.out.print(" Dying");
 
                                     //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
                                     String line = ""; //Buggy poopy line
@@ -218,6 +222,7 @@ public class GameServer2 {
                                     } else {
                                         System.out.println(line + " boof");
                                     }
+                                    System.out.println(" at");
 
 
                                     if ((line = reader.readLine()) != null) {
@@ -241,8 +246,8 @@ public class GameServer2 {
                                             packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "wrong");
                                             writer.println(packet.getData());
                                         }
-                                    }
-                                }            
+                                    } else {System.out.println("Reader != null");} //It's somehow skipping this line
+                                } else {System.out.println("Skipping Everything Cuz Bugged"); }         
                             } 
                             //if answer in time? return score to player
                             if(game.getAnsweringID().equals(client)){

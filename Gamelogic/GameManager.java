@@ -18,10 +18,10 @@ public class GameManager {
     HashMap<String, Player> players; //A list of all players who have been added to the game at any point during runtime
     ArrayList<String> playerIDs; 
 
-    String pointPlayerID;
+    volatile String pointPlayerID;
     int activeQuestion;
     int timerTotal, curTime;
-    Boolean answeredCorrect;
+    volatile Boolean answeredCorrect;
     /**
      * Initiates an active game with a list of all connected players
      * @param players A list of Player objects (player1, player2, etc.) actively in the current managed game. Can enter as many as necessary

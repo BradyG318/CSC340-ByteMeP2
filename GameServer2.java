@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import Gamelogic.GameManager;
 import Gamelogic.Player;
 import Gamelogic.Question;
+import Gamelogic.QuestionReader;
 
 public class GameServer2 {
 
@@ -166,7 +167,7 @@ public class GameServer2 {
                 while(currQuestion < 20){
 
                     if(game.clientActivityPassThrough(client)) {
-                        Question question = game.startRound();
+                        Question question = QuestionReader.getQuestion(game.getCurQuestion());
                         Protocol packet;
 
                         //send question                        

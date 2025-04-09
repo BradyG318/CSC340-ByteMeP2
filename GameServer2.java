@@ -208,23 +208,18 @@ public class GameServer2 {
                                 //if this person is polling
                                 if(game.getAnsweringID().equals(client)){
                                     //read in answers
-                                    reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+                                    reader = new BufferedReader(new InputStreamReader(inStream));
                                     readBuffer = new byte[200];
 
                                     //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
                                     String line = "";
-                                    if ((line = reader.readLine()) == null) {
-                                        System.out.println(line + " hele");
-                                    } else {
-                                        System.out.println(line + " boof");
-                                    }
-
 
                                     if ((line = reader.readLine()) != null) {
                                         System.out.println("Received: " + line); //debug
                                         
                                         //unpack packet   
-                                        Protocol unloadPacket = new Protocol(line);   
+                                        Protocol unloadPacket = new Protocol(line);
+                                        unloadPacket.protocolDetails();   
                                         
                                         //send answer
                                         System.out.println(unloadPacket.files());
@@ -288,6 +283,38 @@ public class GameServer2 {
         } catch(IOException e){
             e.printStackTrace();
         }
+    }
+
+    public void handleTCPClientRead(Socket tcpSocket){
+        while (socket.isConnected()) 
+                {
+                    try 
+                    {
+                        byte[] readBuffer = new byte[200];
+                        //read the data from client
+                        int num = inStream.read(readBuffer);
+                        if (num > 0) 
+                        {
+                            byte[] arrayBytes = new byte[num];
+                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
+                            String recvedMessage = new String(arrayBytes, "UTF-8");
+                            System.out.println("Received message :" + recvedMessage);
+                        } 
+                        else
+                        {
+                            notifyAll();
+                        }
+                    } 
+                    catch (SocketException se) 
+                    {
+                        System.exit(0);
+                    }
+                    catch (IOException i) 
+                    {
+                        i.printStackTrace();
+                    }
+                }
+
     }
 
     //for server, knows and sets all timestamps

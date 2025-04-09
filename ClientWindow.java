@@ -249,8 +249,18 @@ public class ClientWindow implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         System.out.println("You clicked " + e.getActionCommand());
-
         String input = e.getActionCommand();
+
+        if(input.equals(options[0].getText())){
+            input = "Option 1";
+        } else if(input.equals(options[1].getText())){
+            input = "Option 2";
+        } if(input.equals(options[2].getText())){
+            input = "Option 3";
+        } else if(input.equals(options[3].getText())){
+            input = "Option 4";
+        }
+
         switch (input) {
             case "Option 1":
                 if (acknowledged) selectedAnswer = 0;
@@ -274,14 +284,19 @@ public class ClientWindow implements ActionListener {
                 }
                 break;
             case "Submit":
+                System.out.println("poll" + hasPolled + " answer " + selectedAnswer + " canans " + canAnswer + " ack " + acknowledged);
                 if (hasPolled && selectedAnswer != -1 && canAnswer && acknowledged) {
                     String[] ans = {"My Answer", selectedAnswer + ""}; 
                     try {
+                        System.out.println("processing");
                         Protocol answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), ans);
+                        System.out.println("pushing");
                         tcpOut.println(answerPacket.getData());
+                        System.out.println("push work");
+                        tcpOut.flush();
                     } catch (UnknownHostException ee) {
                         System.out.println("no host");
-                    }
+                    } 
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
@@ -307,6 +322,7 @@ public class ClientWindow implements ActionListener {
             e.printStackTrace();
         }
     }
+
 
     private void updateQuestion(String questionText, String option1, String option2, String option3, String option4) {
         question.setText(questionText);

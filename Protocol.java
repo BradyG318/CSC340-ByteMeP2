@@ -175,7 +175,7 @@ public class Protocol implements Serializable {
             if (dataParts[6].equals("null") || dataParts[7].isEmpty()) {
                 this.packetNumber = -1.0; // Default value or handle appropriately
             } else {
-                this.packetNumber = (double)Integer.parseInt(dataParts[6]);
+                this.packetNumber = Double.parseDouble(dataParts[6]);
             }
 
             List<String> filteredFiles = new ArrayList<>();

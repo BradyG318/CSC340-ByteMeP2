@@ -102,6 +102,7 @@ public class GameServer2 {
         //try socket
         try {
             while (true) {
+                // Thread.currentThread().notifyAll();
                 //receive packet
                 byte[] incomingData = new byte[1024];
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
@@ -191,9 +192,10 @@ public class GameServer2 {
                         
 
 
-                        if(game.getAnsweringID() != null) {                 
+                        if(game.getAnsweringID() != null) {    
+                            String tempAnsweringID = game.getAnsweringID();              
                             //if this person is first
-                            if(game.getAnsweringID().equals(client)){
+                            if(tempAnsweringID.equals(client)){
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
                                 writer.println(packet.getData());
                                 
@@ -203,21 +205,19 @@ public class GameServer2 {
                             }
 
                             //answer time
-                            System.out.print("Where");
-                            while(ansEndTime > System.currentTimeMillis()){
-                                System.out.print(" Are");
+                            if(ansEndTime > System.currentTimeMillis()){
                                 //if this person is polling
-                                if(game.getAnsweringID().equals(client)){
-                                    System.out.print(" We");
+                                if(tempAnsweringID.equals(client)){
                                     //read in answers
-                                    reader = new BufferedReader(new InputStreamReader(inStream));
+                                    //reader = new BufferedReader(new InputStreamReader(inStream));
                                     readBuffer = new byte[200];
-                                    System.out.print(" Dying");
 
                                     //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
-                                    String line = "";
+                                    String line = reader.readLine();
 
-                                    if ((line = reader.readLine()) != null) {
+                                    System.out.println(" at");
+                                    System.out.println("DEBUG: Reader=" + line);
+                                    if (line != null) {
                                         System.out.println("Received: " + line); //debug
                                         
                                         //unpack packet   
@@ -233,31 +233,39 @@ public class GameServer2 {
                                         //send correct/incorrect
                                         if(game.answer(number)){
                                             packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "correct");
-                                            writer.println(packet.getData());
-                                            
+                                            writer.println(packet.getData());                                            
                                         } else {
                                             packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "wrong");
                                             writer.println(packet.getData());
                                         }
+                        
                                     } else {System.out.println("Reader != null");} //It's somehow skipping this line
                                 
-                                    System.out.println(game.getAnsweringID());
-                                    System.out.println("hellozzzzz");
-                                    String score = "score," + game.getPlayer(client).getScore();
-                                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
-                                    writer.println(packet.getData());
+                                    // String score = "score," + game.getPlayer(client).getScore();
+                                    // packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
+                                    // writer.println(packet.getData());
                                 } else {
                                     System.out.println("Skipping Everything Cuz Bugged"); 
-                                }         
-                            } 
+                                }    
+                                
+                                System.out.println("stuck at 251?");
+                            } //end
+                            System.out.println("outside if 253");
+                            
                             //if answer in time? return score to player
-                            System.out.println(game.getAnsweringID() + "after loop");
-                            if(game.getAnsweringID().equals(client)){
-                                System.out.println("hello");
+                            System.out.println("DEBUG: Client = " + client);
+                            if(tempAnsweringID.equals(client)){
+                                System.out.println("DEBUG: Sending " + client + " score");
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());
+                                writer.flush();
+                                System.out.println("Sending score at 261");
                             }
+                        }
+
+                        while(isAnswerTime){
+                            //wait
                         }
 
                         //send next

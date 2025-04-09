@@ -66,7 +66,7 @@ public class ClientWindow implements ActionListener {
         JOptionPane.showMessageDialog(window, "Video Game Trivia");
         window = new JFrame("Video game Trivia");
         window.setSize(400, 400);
-        window.setBounds(50, 50, 800, 400);
+        window.setBounds(50, 50, 1000, 400);
         window.setLayout(null);
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -165,7 +165,18 @@ public class ClientWindow implements ActionListener {
 
                     switch (dataType.trim()) { // Trim whitespace for robust comparison
                         case "score":
-                            parts[8] = scoreNum;
+                        if (parts.length >= 9) {
+                            try {
+                                scoreNum = parts[8]; // Update the score string
+                                SwingUtilities.invokeLater(() -> {
+                                    score.setText(playerID + " SCORE: " + scoreNum);
+                                });
+                            } catch (NumberFormatException e) {
+                                System.err.println("Invalid score format received: " + parts[8]);
+                            }
+                        } else {
+                            System.err.println("Score data missing in the packet.");
+                        }
                         break;
                         case "ack":
                             System.out.println("Received ack!"); // Debugging log
@@ -177,6 +188,7 @@ public class ClientWindow implements ActionListener {
                                 enableAllOptions(); // Enable options here, after receiving 'ack'
                                 startAnswerTimer(); // Start the 10-second answer timer
                                 canAnswer = true;
+                                System.out.println("At line 191");
                             }
                             break;
                         case "-ack":
@@ -190,7 +202,6 @@ public class ClientWindow implements ActionListener {
                             hasPolled=false;
                             selectedAnswer=-1;
                             optionGroup.clearSelection();
-                            stopAnswerTimer();
                             canAnswer = false;
                             acknowledged=false;
                             disableAllOptions();
@@ -201,12 +212,12 @@ public class ClientWindow implements ActionListener {
                             hasPolled=false;
                             selectedAnswer=-1;
                             optionGroup.clearSelection();
-                            stopAnswerTimer();
                             canAnswer = false;
                             acknowledged = false;
                             disableAllOptions();
                             break;
                         case "next":
+                            resetForNewQuestion();
                             enablePolling();
                             submit.setEnabled(false);
                             hasPolled = false;
@@ -253,12 +264,15 @@ public class ClientWindow implements ActionListener {
                             break;
                     }
                 }
+                System.out.println("At line 267");
             }
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(window, "Connection to server lost.", "Connection Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
+        System.out.println("At line 272");;
+        Thread.currentThread().notify();
     }
 
     @Override
@@ -315,12 +329,12 @@ public class ClientWindow implements ActionListener {
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
-                    stopAnswerTimer();
                     canAnswer = false;
                     acknowledged = false; // Reset ack after submitting
                     selectedAnswer = -1; // Reset selected answer
                     optionGroup.clearSelection(); // Clear radio button selection
                 }
+                // Thread.currentThread().notifyAll();
                 break;
             default:
                 System.out.println("Incorrect Option");

@@ -211,8 +211,15 @@ public class GameServer2 {
                                     reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
                                     readBuffer = new byte[200];
 
-                                    //put readbuffer into packet and get answer number, put answer number in game.answer();
-                                    String line;
+                                    //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
+                                    String line = "";
+                                    if ((line = reader.readLine()) == null) {
+                                        System.out.println(line + " hele");
+                                    } else {
+                                        System.out.println(line + " boof");
+                                    }
+
+
                                     if ((line = reader.readLine()) != null) {
                                         System.out.println("Received: " + line); //debug
                                         
@@ -223,6 +230,7 @@ public class GameServer2 {
                                         System.out.println(unloadPacket.files());
                                         int number = Integer.parseInt(unloadPacket.files());
                                         game.answer(number);
+
 
                                         //send correct/incorrect
                                         if(game.answer(number)){

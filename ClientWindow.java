@@ -66,7 +66,7 @@ public class ClientWindow implements ActionListener {
         JOptionPane.showMessageDialog(window, "Video Game Trivia");
         window = new JFrame("Video game Trivia");
         window.setSize(400, 400);
-        window.setBounds(50, 50, 800, 400);
+        window.setBounds(50, 50, 1000, 400);
         window.setLayout(null);
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -165,7 +165,18 @@ public class ClientWindow implements ActionListener {
 
                     switch (dataType.trim()) { // Trim whitespace for robust comparison
                         case "score":
-                            parts[8] = scoreNum;
+                        if (parts.length >= 9) {
+                            try {
+                                scoreNum = parts[8]; // Update the score string
+                                SwingUtilities.invokeLater(() -> {
+                                    score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                });
+                            } catch (NumberFormatException e) {
+                                System.err.println("Invalid score format received: " + parts[8]);
+                            }
+                        } else {
+                            System.err.println("Score data missing in the packet.");
+                        }
                         break;
                         case "ack":
                             System.out.println("Received ack!"); // Debugging log
@@ -205,6 +216,7 @@ public class ClientWindow implements ActionListener {
                             disableAllOptions();
                             break;
                         case "next":
+                            resetForNewQuestion();
                             enablePolling();
                             submit.setEnabled(false);
                             hasPolled = false;

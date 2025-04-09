@@ -30,7 +30,7 @@ public class GameServer2 {
     private InputStream inStream = null;
     private OutputStream outStream = null;
     private double initialStart, gameStartTime, pollEndTime, ansEndTime;
-    private int currQuestion, playerID;
+    private volatile int currQuestion, playerID;
     private boolean isPollTime, isAnswerTime;
     private boolean hasBeenPolled;
     private GameManager game;
@@ -44,6 +44,7 @@ public class GameServer2 {
      * Initialize game server
      */
     public GameServer2(){
+        sleepUntilTime = System.currentTimeMillis();
         //init server and timer thread
         executorService = Executors.newFixedThreadPool(2);
 
@@ -129,6 +130,21 @@ public class GameServer2 {
 
     //for all tcps
     public void handleTCPClient(Socket tcpSocket) {
+
+        // Wait for server to set a valid sleepUntilTime
+        // Wait until it's actually time
+        while (System.currentTimeMillis() < sleepUntilTime) {
+            long wait = sleepUntilTime - System.currentTimeMillis();
+            System.out.println("Waiting for game to start... TCP thread sleeping for " + wait + "ms");
+            try {
+                Thread.sleep(Math.min(wait, 100)); // sleep in small chunks to avoid oversleep
+            } catch (InterruptedException e) {
+                System.out.println("FUCK\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("DEBUG: Escaping First While");
         //Make player
         this.playerID ++;
         String client = "Player " + playerID;
@@ -164,14 +180,17 @@ public class GameServer2 {
                 Protocol name = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), client);
                 writer.println(name.getData());
                 
+                long waitTime = sleepUntilTime-System.currentTimeMillis();
+                System.out.println("DEBUG: TCP First Wait Time=" + waitTime);
                 //game running
                 try {
-                    Thread.sleep(sleepUntilTime-System.currentTimeMillis());
+                    Thread.sleep(waitTime);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 while(currQuestion < 20){
+                    //System.out.println("DEBUG: In question loop");
 
                     if(game.clientActivityPassThrough(client)) {
                         Question question = QuestionReader.getQuestion(game.getCurQuestion());
@@ -182,18 +201,26 @@ public class GameServer2 {
                         writer.println(packet.getData());
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
                         writer.println(packet.getData());    
-                        System.out.println("bug galore");
+                        //System.out.println("bug galore");
 
                         //wait to start
                         // Thread.sleep(sleepUntilTime-System.currentTimeMillis());
 
-                        System.out.println("DEBUG: TCP GameStartTime");
+                        //System.out.println("DEBUG: TCP GameStartTime");
                                                                          
                         //wait until timer up
                         
 
-                        System.out.println("DEBUG: TCP IsEndPollTime");
-
+                        //System.out.println("DEBUG: TCP IsEndPollTime");
+                        long waitTime2 = sleepUntilTime-System.currentTimeMillis();
+                        System.out.println("DEBUG: TCP WAIT2 = " + waitTime2);
+                        try {
+                            Thread.sleep(waitTime2);
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        
                         if(game.getAnsweringID() != null) {                 
                             //if this person is first
                             if(game.getAnsweringID().equals(client)){
@@ -286,11 +313,17 @@ public class GameServer2 {
 
     //for server, knows and sets all timestamps
     public void serverGame() {
-        while(true){
-            if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
-                System.out.println("DEBUG: Server GameStartTime");
-                //do nothing
-            } else {
+        // while(true){
+            sleepUntilTime = System.currentTimeMillis()+10000;
+            long waitTime = sleepUntilTime-System.currentTimeMillis();
+            try {
+                Thread.sleep(waitTime);
+                System.out.println("DEBUG: Server firstWait=" + waitTime);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
                 System.out.println("Game Start!");
                 while (currQuestion < 20){
                     //System.out.println("DEBUG: Round Num: " + currQuestion);
@@ -349,9 +382,9 @@ public class GameServer2 {
                 //send winner
                 System.out.println("Game Over");
             }
-        }
+        //}
         
-    }
+    
 
 
 

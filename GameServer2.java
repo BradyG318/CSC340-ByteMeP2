@@ -37,6 +37,7 @@ public class GameServer2 {
 
     private ConcurrentHashMap<String, Double> clientToPollTimes;
     private ConcurrentHashMap<Double, String> pollTimesToClient; 
+    private volatile long sleepUntilTime;
 
 
     /**
@@ -127,7 +128,7 @@ public class GameServer2 {
     }
 
     //for all tcps
-    public void handleTCPClient(Socket tcpSocket){
+    public void handleTCPClient(Socket tcpSocket) {
         //Make player
         this.playerID ++;
         String client = "Player " + playerID;
@@ -164,6 +165,12 @@ public class GameServer2 {
                 writer.println(name.getData());
                 
                 //game running
+                try {
+                    Thread.sleep(sleepUntilTime-System.currentTimeMillis());
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 while(currQuestion < 20){
 
                     if(game.clientActivityPassThrough(client)) {
@@ -178,17 +185,14 @@ public class GameServer2 {
                         System.out.println("bug galore");
 
                         //wait to start
-                        while(System.currentTimeMillis() < gameStartTime){
-                            //wait for game start
-                        }
+                        // Thread.sleep(sleepUntilTime-System.currentTimeMillis());
+
                         System.out.println("DEBUG: TCP GameStartTime");
                                                                          
                         //wait until timer up
-                        while(pollEndTime > System.currentTimeMillis() && isPollTime){
-                            //polling 
-                            // System.out.println("waiting");
-                        }
-                        System.out.println("DEBUG: TCP IsPollTime");
+                        
+
+                        System.out.println("DEBUG: TCP IsEndPollTime");
 
                         if(game.getAnsweringID() != null) {                 
                             //if this person is first
@@ -232,6 +236,7 @@ public class GameServer2 {
                                     }
                                 }            
                             } 
+                            
                             System.out.println("DEBUG: TCP EndOfAnswerTime");
                             //if answer in time? return score to player
                             if(game.getAnsweringID().equals(client)){
@@ -280,7 +285,7 @@ public class GameServer2 {
     }
 
     //for server, knows and sets all timestamps
-    public void serverGame(){
+    public void serverGame() {
         while(true){
             if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
                 System.out.println("DEBUG: Server GameStartTime");
@@ -299,13 +304,16 @@ public class GameServer2 {
 
                     //set times
                     System.out.println("DEBUG: Time in Milli=" + System.currentTimeMillis());
-                    pollEndTime = System.currentTimeMillis() + 15000;
-                    ansEndTime = pollEndTime + 10000;
+                    sleepUntilTime = System.currentTimeMillis() + 15000;
+                    
                     //makes polltime true if it's not after poll time
-                    while(pollEndTime > System.currentTimeMillis()){
-                        isPollTime = true;
-                        //System.out.println(System.currentTimeMillis());
+                    try {
+                        Thread.sleep(sleepUntilTime-(System.currentTimeMillis()));
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
+
                     System.out.println("DEBUG: Server PollEndTime");
                     //System.out.println("DEBUG: Polling Complete");
                     isPollTime = false;
@@ -319,9 +327,14 @@ public class GameServer2 {
 
                         //if poller exists aka nobody polls or not
                         //makes answertime true if its not after answer time
-                        while(ansEndTime > System.currentTimeMillis()){
-                            isAnswerTime = true;
+                        sleepUntilTime = System.currentTimeMillis() + 10000;
+                        try {
+                            Thread.sleep(sleepUntilTime-System.currentTimeMillis());
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
                         }
+
                         //System.out.println("DEBUG: Answer time complete");
                         System.out.println("DEBUG: TCP EndOfAnswerTime");
                         isAnswerTime = false;

@@ -19,7 +19,7 @@ public class GameManager {
     ArrayList<String> playerIDs; 
 
     volatile String pointPlayerID;
-    int activeQuestion;
+    volatile int activeQuestion;
     int timerTotal, curTime;
     volatile Boolean answeredCorrect;
     /**

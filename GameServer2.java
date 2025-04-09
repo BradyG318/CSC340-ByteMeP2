@@ -249,6 +249,7 @@ public class GameServer2 {
 
                             //answer time
                             while(ansEndTime > System.currentTimeMillis()){
+                                System.out.println("ReachingAnswerTime!");
                                 //if this person is polling
                                 if(game.getAnsweringID().equals(client)){
                                     //read in answers
@@ -349,9 +350,9 @@ public class GameServer2 {
                 e.printStackTrace();
             }
 
-                System.out.println("Game Start!");
-                pollEndTime = System.currentTimeMillis() + 15000;
-                ansEndTime = pollEndTime + 10000;
+                // System.out.println("Game Start!");
+                // pollEndTime = System.currentTimeMillis() + 15000;
+                // ansEndTime = pollEndTime + 10000;
 
                 while (currQuestion < 20){
                     //start times

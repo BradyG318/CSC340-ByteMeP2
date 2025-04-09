@@ -164,6 +164,8 @@ public class ClientWindow implements ActionListener {
                     }
 
                     switch (dataType.trim()) { // Trim whitespace for robust comparison
+                        case "score":
+                        break;
                         case "ack":
                             System.out.println("Received ack!"); // Debugging log
                             stopPollTimer();
@@ -182,7 +184,6 @@ public class ClientWindow implements ActionListener {
                             pollAllowed = false;
                             break;
                         case "correct":
-                            enablePolling();
                             JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
                             submit.setEnabled(false);
                             hasPolled=false;
@@ -194,7 +195,6 @@ public class ClientWindow implements ActionListener {
                             disableAllOptions();
                             break;
                         case "wrong":
-                            enablePolling();
                             JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
                             submit.setEnabled(false);
                             hasPolled=false;

@@ -190,7 +190,6 @@ public class ClientWindow implements ActionListener {
                             hasPolled=false;
                             selectedAnswer=-1;
                             optionGroup.clearSelection();
-                            stopAnswerTimer();
                             canAnswer = false;
                             acknowledged=false;
                             disableAllOptions();
@@ -201,7 +200,6 @@ public class ClientWindow implements ActionListener {
                             hasPolled=false;
                             selectedAnswer=-1;
                             optionGroup.clearSelection();
-                            stopAnswerTimer();
                             canAnswer = false;
                             acknowledged = false;
                             disableAllOptions();
@@ -315,7 +313,6 @@ public class ClientWindow implements ActionListener {
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
-                    stopAnswerTimer();
                     canAnswer = false;
                     acknowledged = false; // Reset ack after submitting
                     selectedAnswer = -1; // Reset selected answer

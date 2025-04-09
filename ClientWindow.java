@@ -84,7 +84,7 @@ public class ClientWindow implements ActionListener {
         window.getContentPane().setBackground(new Color(173, 216, 250));
 
         question = new JLabel("Waiting for question...");
-        question.setBounds(10, 5, 750, 100);
+        question.setBounds(10, 5, 950, 100);
         window.add(question);
 
         options = new JRadioButton[4];

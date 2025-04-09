@@ -183,12 +183,18 @@ public class GameServer2 {
                 long waitTime = sleepUntilTime-System.currentTimeMillis();
                 System.out.println("DEBUG: TCP First Wait Time=" + waitTime);
                 //game running
-                try {
-                    Thread.sleep(waitTime);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                while (System.currentTimeMillis() < sleepUntilTime) {
+                    long remainingTime = sleepUntilTime - System.currentTimeMillis();
+                    if (remainingTime > 0) {
+                        try {
+                            Thread.sleep(Math.min(remainingTime, 100));
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } // Sleep in small chunks
+                    }
                 }
+                
                 while(currQuestion < 20){
                     //System.out.println("DEBUG: In question loop");
 
@@ -214,13 +220,18 @@ public class GameServer2 {
                         //System.out.println("DEBUG: TCP IsEndPollTime");
                         long waitTime2 = sleepUntilTime-System.currentTimeMillis();
                         System.out.println("DEBUG: TCP WAIT2 = " + waitTime2);
-                        try {
-                            Thread.sleep(waitTime2);
-                        } catch (InterruptedException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        while (System.currentTimeMillis() < sleepUntilTime) {
+                            long remainingTime = sleepUntilTime - System.currentTimeMillis();
+                            if (remainingTime > 0) {
+                                try {
+                                    Thread.sleep(Math.min(remainingTime, 100));
+                                } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                } // Sleep in small chunks
+                            }
                         }
-                        
+
                         if(game.getAnsweringID() != null) {                 
                             //if this person is first
                             if(game.getAnsweringID().equals(client)){

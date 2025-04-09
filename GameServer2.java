@@ -156,8 +156,9 @@ public class GameServer2 {
                         Question question = game.startRound();
                         Protocol packet;
 
-                        //send question                        
-                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getQuestion());
+                        //send question                 
+                        String[] questionSend = {"q", question.getQuestion()};   
+                        packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), questionSend);
                         writer.println(packet.getData());
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), question.getAnswers());
                         writer.println(packet.getData());    
@@ -177,7 +178,7 @@ public class GameServer2 {
 
                         if(hasBeenPolled){
                             while(!isAnswerTime){
-                            System.out.println("oblivion");
+                            //System.out.println("oblivion");
                             }
                         }
                         

@@ -59,16 +59,31 @@ public class GameManager {
      * Adjusts scores as needed, resets all round-scoped variables, and increments to the next question.
      */
     public void endRound() {
+        System.out.println("DEBUG: Ending Round");
         if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
             if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
                 if(answeredCorrect) { //If they did, see if they got the answer correct
                     players.get(pointPlayerID).scoreInc(10);
-                } else {players.get(pointPlayerID).scoreInc(-10);}
-            } else {players.get(pointPlayerID).scoreInc(-20);}
+                    System.out.println("DEBUG: Adding 10pts");
+                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("DEBUG: Removing 10pts");}
+            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("DEBUG: Removing 20pts");}
         }
         pointPlayerID = null;
         answeredCorrect = null; 
         activeQuestion++;
+    }
+    public void forcePtCalc() {
+        System.out.println("DEBUG: Forcing Pt Calculation");
+        if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
+            if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
+                if(answeredCorrect) { //If they did, see if they got the answer correct
+                    players.get(pointPlayerID).scoreInc(10);
+                    System.out.println("DEBUG: Adding 10pts");
+                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("DEBUG: Removing 10pts");}
+            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("DEBUG: Removing 20pts");}
+        }
+        pointPlayerID = null;
+        answeredCorrect = null; 
     }
     /**
      * Ends this instance of game and provides an organized list based on score

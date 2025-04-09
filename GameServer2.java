@@ -231,7 +231,7 @@ public class GameServer2 {
                                             //do nothing
                                         } else {
                                             int number = Integer.parseInt(unloadPacket.files());
-                                            game.answer(number);
+                                            //game.answer(number);
                                             //send correct/incorrect
                                             if(game.answer(number)){
                                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "correct");
@@ -263,12 +263,14 @@ public class GameServer2 {
                             //if answer in time? return score to player
                             System.out.println("DEBUG: Client = " + client);
                             if(tempAnsweringID.equals(client)){
+                                game.forcePtCalc();
                                 System.out.println("DEBUG: Sending " + client + " score");
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());
                                 writer.flush();
                                 System.out.println("Sending score at 261");
+                                System.out.println("DEBUG: Internal Score for " + client + "=" + game.getPlayer(client).getScore());
                             }
                         }
 

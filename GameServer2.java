@@ -283,7 +283,7 @@ public class GameServer2 {
         } catch(SocketException e){
             game.killPlayer(client);
             //kick out person / mark inactive
-            e.printStackTrace();
+            System.out.println(client + " has left the game");
         } catch(IOException e){
             e.printStackTrace();
         }

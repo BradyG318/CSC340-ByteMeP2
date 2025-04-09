@@ -169,7 +169,7 @@ public class ClientWindow implements ActionListener {
                             try {
                                 scoreNum = parts[8]; // Update the score string
                                 SwingUtilities.invokeLater(() -> {
-                                    score.setText("(" + playerID + ") SCORE: " + scoreNum);
+                                    score.setText(playerID + " SCORE: " + scoreNum);
                                 });
                             } catch (NumberFormatException e) {
                                 System.err.println("Invalid score format received: " + parts[8]);

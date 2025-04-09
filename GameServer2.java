@@ -240,10 +240,20 @@ public class GameServer2 {
                                             writer.println(packet.getData());
                                         }
                                     } else {System.out.println("Reader != null");} //It's somehow skipping this line
-                                } else {System.out.println("Skipping Everything Cuz Bugged"); }         
+                                
+                                    System.out.println(game.getAnsweringID());
+                                    System.out.println("hellozzzzz");
+                                    String score = "score," + game.getPlayer(client).getScore();
+                                    packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
+                                    writer.println(packet.getData());
+                                } else {
+                                    System.out.println("Skipping Everything Cuz Bugged"); 
+                                }         
                             } 
                             //if answer in time? return score to player
+                            System.out.println(game.getAnsweringID() + "after loop");
                             if(game.getAnsweringID().equals(client)){
+                                System.out.println("hello");
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());
@@ -288,39 +298,10 @@ public class GameServer2 {
         }
     }
 
-    public void handleTCPClientRead(Socket tcpSocket){
-        while (socket.isConnected()) 
-                {
-                    try 
-                    {
-                        byte[] readBuffer = new byte[200];
-                        //read the data from client
-                        int num = inStream.read(readBuffer);
-                        if (num > 0) 
-                        {
-                            byte[] arrayBytes = new byte[num];
-                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
-                            String recvedMessage = new String(arrayBytes, "UTF-8");
-                            System.out.println("Received message :" + recvedMessage);
-                        } 
-                        else
-                        {
-                            notifyAll();
-                        }
-                    } 
-                    catch (SocketException se) 
-                    {
-                        System.exit(0);
-                    }
-                    catch (IOException i) 
-                    {
-                        i.printStackTrace();
-                    }
-                }
-
-    }
-
-    //for server, knows and sets all timestamps
+    
+    /**
+     * Runs game as server
+     */
     public void serverGame(){
         while(true){
             if(System.currentTimeMillis() < gameStartTime){ //wait for ppl to join
@@ -357,7 +338,6 @@ public class GameServer2 {
                         game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
                         System.out.println("DEBUG: Making it past Buzz-In");
 
-                        System.out.println("do we get here");
 
                         //if poller exists aka nobody polls or not
                         //makes answertime true if its not after answer time

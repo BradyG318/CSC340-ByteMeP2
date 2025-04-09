@@ -170,7 +170,6 @@ public class GameServer2 {
                         writer.println(packet.getData());
                         packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), answerSend);
                         writer.println(packet.getData());    
-                        System.out.println("bug galore");
 
                         //wait to start
                         while(System.currentTimeMillis() < gameStartTime){
@@ -245,7 +244,7 @@ public class GameServer2 {
                             } 
                             //if answer in time? return score to player
                             if(game.getAnsweringID().equals(client)){
-                                String score = game.getPlayer(client).getScore() + "";
+                                String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());
                             }

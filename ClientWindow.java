@@ -172,6 +172,8 @@ public class ClientWindow implements ActionListener {
                 } else {
                     switch (serverMessage) {
                         case "ack":
+                            System.out.println("Received ack!"); // Debugging log
+                            stopPollTimer();
                             acknowledged = true;
                             if (hasPolled) {
                                 submit.setEnabled(true);
@@ -219,13 +221,11 @@ public class ClientWindow implements ActionListener {
                             }
                             System.exit(0);
                             break;
-                        default:
+                        default: //shouldn't really get to here
                             if (serverMessage.startsWith("TIMER:")) {
                                 try {
                                     int duration = Integer.parseInt(serverMessage.substring("TIMER:".length()));
-                                    // This timer might be for overall game time, not poll/answer
-                                    // You can handle it as needed or ignore if not relevant to poll/answer timings.
-                                    // startOrUpdateGeneralTimer(duration);
+
                                 } catch (NumberFormatException e) {
                                     System.err.println("Invalid TIMER format: " + serverMessage);
                                 }
@@ -275,9 +275,8 @@ public class ClientWindow implements ActionListener {
                     sendUDP("POLL");
                     hasPolled = true;
                     disableAllOptions(); // Disable options after polling until ack
-                    poll.setEnabled(true);
-                    // Stop the poll timer once polled?
-                    // Wait for 'ack' from server over TCP to enable submit and start answer timer
+                    poll.setEnabled(false); // Disable poll button after clicking
+                    // The poll timer will be stopped upon receiving 'ack'
                 }
                 break;
             case "Submit":
@@ -336,9 +335,12 @@ public class ClientWindow implements ActionListener {
 
     private void enableAllOptions() {
         if (acknowledged) {
+            System.out.println("enableAllOptions() called. acknowledged is true. Enabling options."); // Debugging log
             for (JRadioButton option : options) {
                 option.setEnabled(true);
             }
+        } else {
+            System.out.println("enableAllOptions() called. acknowledged is false. Options NOT enabled."); // Debugging log
         }
     }
 
@@ -393,8 +395,11 @@ public class ClientWindow implements ActionListener {
 
     private void stopPollTimer() {
         if (pollTimerTask != null) {
+            System.out.println("Stopping poll timer."); // Debugging log
             pollTimerTask.cancel();
             pollTimerTask = null;
+        } else {
+            System.out.println("stopPollTimer() called but pollTimerTask is null."); // Debugging log
         }
     }
 

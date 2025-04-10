@@ -1,3 +1,24 @@
+Project 2 Report -- Aislin, Brady & Morgan -- Team Byte-Me
+
+Report-- Code Runthrough
+Server
+The server is designed to initialize the game details, GameManger, a thread for the server to run the game (gameServer), and the sockets for UDP 
+and TCP (1 UDP and loops to accept clients). When players join, they are added into the TCP client thread and are added to the player base in 
+GameManger. The gameServer function sets the current question with GameManager and sets the current question, initializes the general timers for 
+the TCP clients to follow using global variables, and ends the game when all 20 questions are cycled through. UDP stays open and accepts messages 
+from client, which are only sent during the poll time. HandleTCPClient does most of the heavy lifting in server. Synched with each timer in 
+gameServer, each TCP thread manages a connection with each client and manages all the sending and recieving of packets from the client. After 
+connecting, we send the player's ID before entering the question loop. For each question, we send the question and it's options and test if there 
+were any polls sent by clients. If there were none, it skips to the next question. If a client polls, it takes the first responder (from their 
+sending time) and allows them to answer, where the TCP client waits for a response. If we get a response, we intake the question number, send it 
+into game manager, and send a packet saying "correct" or "wrong". At the end of the answering time, the score is sent to the answering client, 
+including to clients who never submitted anything, and sends "next" to clients before moving to the next question. Additionally, the system checks 
+with GameManager to see which clients are actively playing, meaning they've polled within the last 3 rounds, and sends a kill message if they've 
+surpassed that limit. After the game ends, gameServer runs GameManager to post the winning results and shuts the game down after 100 seconds. 
+
+Client
+
+Logging -- Tests
 Log 1
  - Attempted to hit submit, then select an answer to see how the system would respond
  - Issue(s): Client timer broke on the selecting client, other clients were ok

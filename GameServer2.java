@@ -56,13 +56,13 @@ public class GameServer2 {
         //init misc
         hasBeenPolled = false;
 
-        System.out.println("OOga Booga");
+
         //game stats in manager
-        System.out.println("hello");
+ 
         game = new GameManager(); //send hashmap   
         currQuestion = 0;
         playerID = 0;
-        System.out.println("Ooooooog");
+
 
         //open sockets
         try {
@@ -154,8 +154,8 @@ public class GameServer2 {
                 //game running
                 while(currQuestion < 20){
 
-                    System.out.println("DEBUG: " + client + " status=" + game.clientActivityPassThrough(client));
-                    System.out.println("DEBUG: " + client + "last Q num=" + game.getPlayer(client).getLastQAns());
+                    System.out.println(client + " status=" + game.clientActivityPassThrough(client));
+                    System.out.println(client + " last Q num=" + game.getPlayer(client).getLastQAns());
                     if(game.clientActivityPassThrough(client)) {
                         Question question = game.startRound();
                         Protocol packet;
@@ -180,7 +180,6 @@ public class GameServer2 {
                             //wait for game start
                         }
                                                    
-                        System.out.println(pollEndTime + " " + (double) System.currentTimeMillis());
                         //wait until timer up
                         while(pollEndTime > System.currentTimeMillis()){
                             //polling 
@@ -290,13 +289,14 @@ public class GameServer2 {
                     } else {
                         //Send killswitch msg
                         game.killPlayer(client);
-                        System.out.println("DEBUG: Killing " + client);
+                        System.out.println("Killing " + client + " for disconnection");
                         Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "kill");
                         writer.println(packet.getData());
                         Thread.currentThread().stop();
                     }
 
                     if(!game.getPlayer(client).isActive()) {
+                        System.out.println("Killing " + client + " for inactivity");
                         Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "kill");
                         writer.println(packet.getData());
                         Thread.currentThread().stop();
@@ -338,30 +338,28 @@ public class GameServer2 {
 
                 while (currQuestion < 20){
                     //start times
-                    System.out.println("DEBUG: Time in Milli=" + System.currentTimeMillis());
                     pollEndTime = System.currentTimeMillis() + 15000;
                     ansEndTime = pollEndTime + 10000;
 
 
                     //init game
-                    System.out.println("DEBUG: Round Num: " + currQuestion);
+                    System.out.println("Round Num: " + currQuestion);
                     game.startRound();
                     clientToPollTimes = new ConcurrentHashMap<String, Double>();
                     pollTimesToClient = new ConcurrentHashMap<Double, String>();
 
-                    
+                    System.out.println("Polling Time!");
                     //makes polltime true if it's not after poll time
                     while(pollEndTime > System.currentTimeMillis()){
                         isPollTime = true;
                         //System.out.println(System.currentTimeMillis());
                     }
-                    System.out.println("DEBUG: Polling Complete");
+                    System.out.println("Polling Complete");
                     isPollTime = false;
                     
                     if(hasBeenPolled) {
-                        System.out.println("answer time!");
+                        System.out.println("Answer time!");
                         game.buzzIn(pollTimesToClient.get(Collections.min(clientToPollTimes.values())));
-                        System.out.println("DEBUG: Making it past Buzz-In");
 
 
                         //if poller exists aka nobody polls or not
@@ -369,11 +367,11 @@ public class GameServer2 {
                         while(ansEndTime > System.currentTimeMillis()){
                             isAnswerTime = true;
                         }
-                        System.out.println("DEBUG: Answer time complete");
+                        System.out.println(" Answer time complete");
                         isAnswerTime = false;
-                    } else {System.out.println("DEBUG: No polls submitted, sending next");}
+                    } else {System.out.println("No polls submitted, sending next");}
 
-                    System.out.println("DEBUG: Round Complete");
+                    System.out.println("Round Complete");
                     hasBeenPolled = false;
                     currQuestion++;
                     game.endRound();

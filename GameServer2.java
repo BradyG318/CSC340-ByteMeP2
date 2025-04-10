@@ -118,6 +118,7 @@ public class GameServer2 {
                     hasBeenPolled = true;
                     clientToPollTimes.put(client, pollData.getPacketNum());
                     pollTimesToClient.put(pollData.getPacketNum(), client);
+                    game.getPlayer(client).heartbeat(currQuestion);
                 }
                 
             }
@@ -153,6 +154,8 @@ public class GameServer2 {
                 //game running
                 while(currQuestion < 20){
 
+                    System.out.println("DEBUG: " + client + " status=" + game.clientActivityPassThrough(client));
+                    System.out.println("DEBUG: " + client + "last Q num=" + game.getPlayer(client).getLastQAns());
                     if(game.clientActivityPassThrough(client)) {
                         Question question = game.startRound();
                         Protocol packet;
@@ -198,7 +201,6 @@ public class GameServer2 {
                             if(tempAnsweringID.equals(client)){
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "ack");
                                 writer.println(packet.getData());
-                                
                             } else {
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "-ack");
                                 writer.println(packet.getData());
@@ -215,17 +217,17 @@ public class GameServer2 {
                                     //put readbuffer into packet and get answer number, put answer number in game.answer();                                    
                                     String line = reader.readLine();
 
-                                    System.out.println(" at");
-                                    System.out.println("DEBUG: Reader=" + line);
+                                    //System.out.println(" at");
+                                    //System.out.println("DEBUG: Reader=" + line);
                                     if (line != null) {
-                                        System.out.println("Received: " + line); //debug
+                                        //System.out.println("Received: " + line); //debug
                                         
                                         //unpack packet   
                                         Protocol unloadPacket = new Protocol(line);
                                         unloadPacket.protocolDetails();   
                                         
                                         //send answer
-                                        System.out.println(unloadPacket.files() + "  228");
+                                        //System.out.println(unloadPacket.files() + "  228");
 
                                         if(unloadPacket.files().equals("No Answer")){
                                             //do nothing
@@ -253,24 +255,24 @@ public class GameServer2 {
                                     // packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                     // writer.println(packet.getData());
                                 } else {
-                                    System.out.println("Skipping Everything Cuz Bugged"); 
+                                    //System.out.println("Skipping Everything Cuz Bugged"); 
                                 }    
                                 
-                                System.out.println("stuck at 251?");
+                                //System.out.println("stuck at 251?");
                             } //end
-                            System.out.println("outside if 253");
+                            //System.out.println("outside if 253");
                             
                             //if answer in time? return score to player
-                            System.out.println("DEBUG: Client = " + client);
+                            //System.out.println("DEBUG: Client = " + client);
                             if(tempAnsweringID.equals(client)){
                                 game.forcePtCalc();
-                                System.out.println("DEBUG: Sending " + client + " score");
+                                //System.out.println("DEBUG: Sending " + client + " score");
                                 String score = "score," + game.getPlayer(client).getScore();
                                 packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), score);
                                 writer.println(packet.getData());
                                 writer.flush();
-                                System.out.println("Sending score at 261");
-                                System.out.println("DEBUG: Internal Score for " + client + "=" + game.getPlayer(client).getScore());
+                                //System.out.println("Sending score at 261");
+                                //System.out.println("DEBUG: Internal Score for " + client + "=" + game.getPlayer(client).getScore());
                             }
                         }
 
@@ -288,15 +290,20 @@ public class GameServer2 {
                     } else {
                         //Send killswitch msg
                         game.killPlayer(client);
-
+                        System.out.println("DEBUG: Killing " + client);
                         Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "kill");
                         writer.println(packet.getData());
+                        Thread.currentThread().stop();
                     }
 
-                                       
+                    if(!game.getPlayer(client).isActive()) {
+                        Protocol packet = new Protocol(InetAddress.getLocalHost(), tcpSocket.getInetAddress(), (Integer) 1987, (Integer) tcpSocket.getPort(), (double) System.currentTimeMillis(), "kill");
+                        writer.println(packet.getData());
+                        Thread.currentThread().stop();
+                    }                  
 
                 }
-
+                
                 //after game
 
                 //print out scores

@@ -16,7 +16,6 @@ import java.util.List;
  */
 public class GameManager {
     HashMap<String, Player> players; //A list of all players who have been added to the game at any point during runtime
-    ArrayList<String> playerIDs; 
 
     String pointPlayerID;
     int activeQuestion;
@@ -28,8 +27,7 @@ public class GameManager {
      */
     public GameManager(Player... playerList) {
         this.players = new HashMap<String, Player>();
-        this.playerIDs = new ArrayList<String>();
-        for(Player p : playerList) {this.players.put(p.getID(), p); playerIDs.add(p.getID());}
+        // for(Player p : playerList) {this.players.put(p.getID(), p); playerIDs.add(p.getID());}
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
@@ -38,7 +36,6 @@ public class GameManager {
      */
     public GameManager() {
         this.players = new HashMap<String, Player>();
-        this.playerIDs = new ArrayList<String>();
         activeQuestion = 0;
         QuestionReader.refreshQuestionList();
     }
@@ -47,8 +44,8 @@ public class GameManager {
      * @return A {@code Question} object containing the question, answers, and answer num index from the connected Questions.txt file
      */
     public Question startRound() {
-        for(String id : playerIDs) { //Checking to make sure players have responded recently, setting them to inactive if they haven't
-            if(activeQuestion - players.get(id).getLastQAns() > 3) {
+        for(String id : players.keySet()) { //Checking to make sure players have responded recently, setting them to inactive if they haven't
+            if(activeQuestion - players.get(id).getLastQAns() > 3 && players.get(id).isActive() == true) {
                 players.get(id).setInactive();
             }
         }
@@ -131,7 +128,7 @@ public class GameManager {
      * 
      * @param ID A {@code String} representing the ID of the player you wish to mark as killed
      */
-    public void killPlayer(String ID) {players.get(ID).kill();}
+    public void killPlayer(String ID) {players.get(ID).setInactive();}
     /**
      * Function to retrieve the player from the game's hashmap
      * @param ID A {@code String} representing the ID of the player object you wish to retrieve
@@ -143,11 +140,11 @@ public class GameManager {
      * Sets all "inactive" players to null, effectively killing the player as it causes the TCP connection to be closed and a new one to need to be opened
      */
     public void killAllTheDead() {
-        for(String id : playerIDs) { //Checking to make sure players have responded recently, setting their connected variables to null if not
-            if(!players.get(id).isActive()) {
-                players.get(id).kill(); 
-            }
-        }
+        // for(String id : playerIDs) { //Checking to make sure players have responded recently, setting their connected variables to null if not
+        //     if(!players.get(id).isActive()) {
+        //         players.get(id).kill(); 
+        //     }
+        // }
     }
     /**
      * Buzzs in the submitted player ID as the active answering player for the question

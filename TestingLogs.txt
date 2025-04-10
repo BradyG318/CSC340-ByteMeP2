@@ -1,8 +1,13 @@
 Log 1
  - Attempted to hit submit, then select an answer to see how the system would respond
- - Client timer broke on the selecting client, other clients were ok
- - Solution: 
+ - Issue(s): Client timer broke on the selecting client, other clients were ok
+ - Solution:         
  Log 2
   - Attempted to submit an answer with two clients connected
-  - Client wasn't able to recieve it's score accurately
+  - Issue(s): Client wasn't able to recieve it's score accurately
   - Solution: Added a function to force the score to update in GameManger due to the desync between HandleTCPClient & ServerGame
+Log 3
+ - Attempting to run through a full game with multiple clients connected
+ - Issue(s): Successfully made it through game, however, clients don't shutdown at end, and can still send messages to the server after the games supposed to be over
+             We also discovered an error with our autokick system, in the sense that it just doesn't work at allows
+ - Solution: To fix shutdown we made it so the players get killed at end of game, 

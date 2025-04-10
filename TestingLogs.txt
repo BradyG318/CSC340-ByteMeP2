@@ -10,4 +10,5 @@ Log 3
  - Attempting to run through a full game with multiple clients connected
  - Issue(s): Successfully made it through game, however, clients don't shutdown at end, and can still send messages to the server after the games supposed to be over
              We also discovered an error with our autokick system, in the sense that it just doesn't work at allows
- - Solution: To fix shutdown we made it so the players get killed at end of game, 
+ - Solution: To fix shutdown we made it so the players get killed at end of game, to fix autokick we updated our heartbeat system and changed from an arraylist of IDs to direct pulling hashmap keys in GameManager
+ 

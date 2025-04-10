@@ -197,7 +197,6 @@ public class ClientWindow implements ActionListener {
                             acknowledged = true;
                             poll.setEnabled(false); // Don't disable poll button after clicking
                             if (hasPolled) {
-                                submit.setEnabled(true);
                                 enableAllOptions(); // Enable options here, after receiving 'ack'
                                 startAnswerTimer(); // Start the 10-second answer timer
                                 canAnswer = true;
@@ -210,7 +209,6 @@ public class ClientWindow implements ActionListener {
                             pollAllowed = false;
                             break;
                         case "correct":
-                            JOptionPane.showMessageDialog(window, "Correct Answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
                             submit.setEnabled(false);
                             hasPolled=false;
                             selectedAnswer=-1;
@@ -220,7 +218,6 @@ public class ClientWindow implements ActionListener {
                             disableAllOptions();
                             break;
                         case "wrong":
-                            JOptionPane.showMessageDialog(window, "Incorrect Answer.", "Result", JOptionPane.WARNING_MESSAGE);
                             submit.setEnabled(false);
                             hasPolled=false;
                             selectedAnswer=-1;
@@ -298,16 +295,31 @@ public class ClientWindow implements ActionListener {
         System.out.println("You clicked " + e.getActionCommand());
         String input = e.getActionCommand();
 
-        if(input.equals(options[0].getText())){
+        if (input.equals(options[0].getText())) {
             input = "Option 1";
-        } else if(input.equals(options[1].getText())){
+        } else if (input.equals(options[1].getText())) {
             input = "Option 2";
-        } if(input.equals(options[2].getText())){
+        }
+        if (input.equals(options[2].getText())) {
             input = "Option 3";
-        } else if(input.equals(options[3].getText())){
+        } else if (input.equals(options[3].getText())) {
             input = "Option 4";
         }
 
+        // Enable submit button ONLY when an option is selected AND we have received 'ack'
+        if (acknowledged && hasPolled && canAnswer) {
+            if (input.startsWith("Option ")) { // Check if the action is from an option button
+                boolean optionSelected = false;
+                for (JRadioButton option : options) {
+                    if (option.isSelected()) {
+                        optionSelected = true;
+                        break;
+                    }
+                }
+                submit.setEnabled(optionSelected);
+            }
+        }
+        
         switch (input) {
             case "Option 1":
                 if (acknowledged) selectedAnswer = 0;
@@ -333,7 +345,7 @@ public class ClientWindow implements ActionListener {
             case "Submit":
                 System.out.println("poll" + hasPolled + " answer " + selectedAnswer + " canans " + canAnswer + " ack " + acknowledged);
                 if (hasPolled && selectedAnswer != -1 && canAnswer && acknowledged) {
-                    String[] ans = {"My Answer", selectedAnswer + ""}; 
+                    String[] ans = {"My Answer", selectedAnswer + ""};
                     try {
                         System.out.println("processing");
                         Protocol answerPacket = new Protocol(InetAddress.getLocalHost(), serverAddress, (Integer) tcpSocket.getPort(), (Integer) 1987, (double) System.currentTimeMillis(), ans);
@@ -343,7 +355,7 @@ public class ClientWindow implements ActionListener {
                         tcpOut.flush();
                     } catch (UnknownHostException ee) {
                         System.out.println("no host");
-                    } 
+                    }
                     disableAllOptions();
                     submit.setEnabled(false);
                     hasPolled = false;
@@ -358,18 +370,13 @@ public class ClientWindow implements ActionListener {
                         System.out.println("pushing");
                         tcpOut.println(answerPacket.getData());
                     } catch (UnknownHostException e1) {
-                        // TODO Auto-generated catch block
                         e1.printStackTrace();
                     }
-                    
                 }
-                // Thread.currentThread().notifyAll();
                 break;
             default:
-                
         }
     }
-
     /**
      * Sends a UDP message to the server.
      *

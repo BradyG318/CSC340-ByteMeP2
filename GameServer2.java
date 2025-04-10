@@ -223,7 +223,7 @@ public class GameServer2 {
                                         
                                         //unpack packet   
                                         Protocol unloadPacket = new Protocol(line);
-                                        unloadPacket.protocolDetails();   
+                                        //unloadPacket.protocolDetails();   
                                         
                                         //send answer
                                         //System.out.println(unloadPacket.files() + "  228");

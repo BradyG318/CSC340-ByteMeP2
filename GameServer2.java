@@ -386,6 +386,7 @@ public class GameServer2 {
                     //wait
                 }
 
+                System.out.println(game.endGame());
                 System.exit(-1);
             }
         }

@@ -204,7 +204,6 @@ public class ClientWindow implements ActionListener {
                             }
                             break;
                         case "-ack":
-                            JOptionPane.showMessageDialog(window, "Too late to poll for this question.", "Too Late", JOptionPane.WARNING_MESSAGE);
                             poll.setEnabled(false);
                             pollAllowed = false;
                             break;
@@ -319,7 +318,7 @@ public class ClientWindow implements ActionListener {
                 submit.setEnabled(optionSelected);
             }
         }
-        
+
         switch (input) {
             case "Option 1":
                 if (acknowledged) selectedAnswer = 0;

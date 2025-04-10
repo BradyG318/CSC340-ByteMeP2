@@ -32,4 +32,8 @@ Log 3
  - Issue(s): Successfully made it through game, however, clients don't shutdown at end, and can still send messages to the server after the games supposed to be over
              We also discovered an error with our autokick system, in the sense that it just doesn't work at allows
  - Solution: To fix shutdown we made it so the players get killed at end of game, to fix autokick we updated our heartbeat system and changed from an arraylist of IDs to direct pulling hashmap keys in GameManager
- 
+Log 4
+ - Attempted to kill multiple users in the same round to see if the system could handle multiple thread deaths at a time
+ - Issue(s): None, code succesfully handled multiple deaths and was able to continue the game after these clients were removed
+ Log 5
+ - 

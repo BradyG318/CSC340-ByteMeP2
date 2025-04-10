@@ -200,7 +200,6 @@ public class ClientWindow implements ActionListener {
                                 enableAllOptions(); // Enable options here, after receiving 'ack'
                                 startAnswerTimer(); // Start the 10-second answer timer
                                 canAnswer = true;
-                                System.out.println("At line 191");
                             }
                             break;
                         case "-ack":
@@ -273,14 +272,12 @@ public class ClientWindow implements ActionListener {
                             break;
                     }
                 }
-                System.out.println("At line 267");
             }
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(window, "Connection to server lost.", "Connection Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
-        System.out.println("At line 272");;
         Thread.currentThread().notify();
     }
 

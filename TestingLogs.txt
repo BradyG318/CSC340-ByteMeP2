@@ -17,12 +17,23 @@ with GameManager to see which clients are actively playing, meaning they've poll
 surpassed that limit. After the game ends, gameServer runs GameManager to post the winning results and shuts the game down after 100 seconds. 
 
 Client
+The client application initializes the user interface with a question label, four initially disabled radio button options, a timer label, a score label 
+displaying the player's ID, and "Poll" and initially disabled "Submit" buttons. It establishes both a UDP socket to send poll messages and a persistent 
+TCP connection to receive game information and send answers to the server. A separate thread continuously listens for TCP messages from the server, parsing 
+them to update the displayed player ID and score, present new questions and answer options (initially disabling them), and start a 15-second poll timer. 
+Upon clicking the "Poll" button (if allowed and the client hasn't polled), a "POLL" message and the player's ID are sent via UDP, and the answer options are 
+disabled until server acknowledgment. When the server acknowledges the poll with an "ack", the poll timer is stopped, the answer options are enabled, and a 
+10-second answer timer begins. Selecting a radio button enables the "Submit" button, and clicking it sends the selected answer index to the server via TCP 
+(or "No Answer" if the timer expires without a selection). After submitting or the answer timer expiring, the options and submit button are disabled, and relevant 
+flags are reset. The client handles "correct" and "wrong" feedback by disabling the submit button and resetting for the next question, and the "next" message 
+prepares the UI for a new question by enabling polling. A "kill" message from the server triggers a "Game Over!" message and terminates the client. The client 
+manages its own timers for the polling and answering phases, updating the timer label accordingly, and uses SwingUtilities.invokeLater() for thread-safe UI updates.
 
 Logging -- Tests
 Log 1
  - Attempted to hit submit, then select an answer to see how the system would respond
  - Issue(s): Client timer broke on the selecting client, other clients were ok
- - Solution:         
+ - Solution: Lock the submit button until an answer has been selected in order to avoid this bug occuring in the first place       
  Log 2
   - Attempted to submit an answer with two clients connected
   - Issue(s): Client wasn't able to recieve it's score accurately
@@ -36,4 +47,5 @@ Log 4
  - Attempted to kill multiple users in the same round to see if the system could handle multiple thread deaths at a time
  - Issue(s): None, code succesfully handled multiple deaths and was able to continue the game after these clients were removed
  Log 5
- - 
+ - Attempted to add and disconnect several clients to see if the system could handle several dead threads/player objects during runtime
+ - Issue(s): (Surprisingly) no problems, the scoreboard at the end was a bit strange with 15 players most of which had no score, but it did ultimately work. 

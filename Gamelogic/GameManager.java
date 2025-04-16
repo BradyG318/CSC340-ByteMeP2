@@ -56,28 +56,29 @@ public class GameManager {
      * Adjusts scores as needed, resets all round-scoped variables, and increments to the next question.
      */
     public void endRound() {
-        System.out.println("DEBUG: Ending Round");
+        System.out.println("Ending Round");
         if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
             if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
                 if(answeredCorrect) { //If they did, see if they got the answer correct
                     players.get(pointPlayerID).scoreInc(10);
-                    System.out.println("DEBUG: Adding 10pts");
-                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("DEBUG: Removing 10pts");}
-            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("DEBUG: Removing 20pts");}
+                    System.out.println("Adding 10pts");
+                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("Removing 10pts");}
+            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("Removing 20pts");}
         }
         pointPlayerID = null;
         answeredCorrect = null; 
         activeQuestion++;
     }
+    /**Forces the points to be calculated early for the currently active playerID */
     public void forcePtCalc() {
-        System.out.println("DEBUG: Forcing Pt Calculation");
+        System.out.println("Forcing Pt Calculation");
         if(pointPlayerID != null) { //Make sure someone buzzed to answer the question
             if(answeredCorrect != null) { //If they did, make sure that after they buzzed they actually answered the question
                 if(answeredCorrect) { //If they did, see if they got the answer correct
                     players.get(pointPlayerID).scoreInc(10);
-                    System.out.println("DEBUG: Adding 10pts");
-                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("DEBUG: Removing 10pts");}
-            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("DEBUG: Removing 20pts");}
+                    System.out.println("Adding 10pts");
+                } else {players.get(pointPlayerID).scoreInc(-10); System.out.println("Removing 10pts");}
+            } else {players.get(pointPlayerID).scoreInc(-20); System.out.println("Removing 20pts");}
         }
         pointPlayerID = null;
         answeredCorrect = null; 
@@ -150,7 +151,7 @@ public class GameManager {
      * Buzzs in the submitted player ID as the active answering player for the question
      * @param buzzingPlayerID A {@code String} representing the ID of the buzzing player
      */
-    public void buzzIn(String buzzingPlayerID) {System.out.println("DEBUG: Buzzing in "); pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
+    public void buzzIn(String buzzingPlayerID) {System.out.println("Buzzing in "); pointPlayerID = buzzingPlayerID;} //Convert playerlist to hashmap that uess ID as key, this takes key in
 
     /**@return True if inputted answer num is correct */
     public boolean answer(int answerNum) {
